@@ -1,17 +1,10 @@
 import logo from "../assets/landing/logo.svg"
 import mockup from "../assets/landing/mockup_1.svg"
-import mockup1 from "../assets/landing/mockup_1.svg"
 
-import mockup2 from "../assets/landing/mockup_1.svg"
-
-import mockup3 from "../assets/landing/mockup_1.svg"
-
-import mockup4 from "../assets/landing/mockup_1.svg"
 
 import WordRotate from "../Components/ui/word-rotate";
 
-import { Swiper, SwiperSlide } from "swiper/react";
-import { EffectCoverflow, Pagination, Autoplay } from "swiper/modules";
+
 
 import Marquee from "react-fast-marquee";
 
@@ -36,7 +29,6 @@ function LandingPage() {
     organisation6,
   ];
 
-  const mockups = [mockup, mockup1, mockup2, mockup3, mockup4];
 
   return (
     <div className="min-h-screen bg-gradient-to-r from-white via-gray-50 to-white">
