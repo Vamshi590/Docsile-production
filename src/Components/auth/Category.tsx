@@ -142,7 +142,7 @@ function Category() {
 
             <p className="text-sm text-gray-600 mt-8">
               Already have an account?{" "}
-              <a href="/signin2" className="text-blue-500 hover:underline">
+              <a href="/signin" className="text-blue-500 hover:underline">
                 Log in
               </a>
             </p>
