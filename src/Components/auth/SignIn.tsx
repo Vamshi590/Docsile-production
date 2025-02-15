@@ -19,13 +19,9 @@ function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  //agree terms check
-  const [isChecked, setIsChecked] = useState(false);
+ 
 
-  function checkHandler() {
-    setIsChecked((e) => !e);
-    console.log(isChecked);
-  }
+ 
 
   const [passwordVisiblity, setPasswordVisibilty] = useState(false);
 

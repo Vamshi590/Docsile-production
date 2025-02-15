@@ -14,7 +14,6 @@ import studentLogo from "../../assets/studentLogo.svg";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast, Toaster } from "sonner";
-import { BACKEND_URL } from "../../config";
 import { getCategoryId } from "../../functions";
 
 function Category() {

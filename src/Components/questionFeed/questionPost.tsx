@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useState, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+// import { useNavigate } from "react-router-dom";
 import {
   IoIosArrowDropleftCircle,
   IoIosArrowDroprightCircle,
@@ -213,22 +213,21 @@ export const QuestionPost: React.FC<QuestionPostProps> = ({
   isUrgent,
   shares,
   answers,
-  postId,
-  postAnswers,
-  answerImg,
+  // postId,
+  
   onShare,
-  onAnswer,
+  // onAnswer,
 }) => {
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
 
   const handleQuestionClick = () => {};
 
   const [isExpanded, setIsExpanded] = React.useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showArrows, setShowArrows] = useState(false);
-  const [showAnswers, setShowAnswers] = useState(false);
+  // const [showAnswers, setShowAnswers] = useState(false);
   const [answerText, setAnswerText] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  // const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [isSaved, setIsSaved] = useState(false);
   const [isMoreOpen, setIsMoreOpen] = useState(false);
@@ -281,19 +280,19 @@ export const QuestionPost: React.FC<QuestionPostProps> = ({
 
   const visibleDots = getVisibleDots();
 
-  const handleSubmitAnswer = async () => {
-    if (answerText.trim() && onAnswer && !isSubmitting) {
-      try {
-        setIsSubmitting(true);
-        await onAnswer(postId, answerText.trim());
-        setAnswerText("");
-      } catch (error) {
-        console.error("Failed to submit answer:", error);
-      } finally {
-        setIsSubmitting(false);
-      }
-    }
-  };
+  // const handleSubmitAnswer = async () => {
+  //   if (answerText.trim() && onAnswer && !isSubmitting) {
+  //     try {
+  //       setIsSubmitting(true);
+  //       await onAnswer(postId, answerText.trim());
+  //       setAnswerText("");
+  //     } catch (error) {
+  //       console.error("Failed to submit answer:", error);
+  //     } finally {
+  //       setIsSubmitting(false);
+  //     }
+  //   }
+  // };
 
   const toggleMore = () => {
     setIsMoreOpen(!isMoreOpen);

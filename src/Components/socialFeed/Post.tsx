@@ -281,6 +281,8 @@ export const Post: React.FC<PostProps> = ({
       replies: [],
     };
 
+    console.log(postComments[0].id)
+
     setPostComments(prevComments => [newComment, ...prevComments]);
  
   };

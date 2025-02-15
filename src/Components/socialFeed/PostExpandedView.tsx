@@ -74,7 +74,6 @@ const PostExpandedView: React.FC<PostExpandedViewProps> = ({ isOpen, onClose, li
   const [commentText, setCommentText] = useState('');
   const [replyText, setReplyText] = useState('');
   const [likedComments, setLikedComments] = useState<Set<string>>(new Set());
-  const [likedPost, setLikedPost] = useState(false);
   const [expandedReplies, setExpandedReplies] = useState<Set<string>>(new Set());
   const [comments, setComments] = useState<Comment[]>(post.comments);
   const [stats, setStats] = useState(post.stats);

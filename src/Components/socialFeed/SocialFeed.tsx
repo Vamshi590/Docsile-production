@@ -205,90 +205,7 @@ export const SocialFeed: React.FC = () => {
     </div>
   );
 
-  const stories = [
-    {
-      id: "1",
-      userId: "user1",
-      userName: "John Doe",
-      userAvatar: "https://randomuser.me/api/portraits/men/1.jpg",
-      uploadTime: "2025-02-11T15:42:00",
-      isViewed: false,
-      media: [
-        {
-          id: "media1",
-          type: "image" as const,
-          url: "https://images.unsplash.com/photo-1518791841217-8f162f1e1131",
-          duration: 5, // in seconds
-        },
-        {
-          id: "media2",
-          type: "image" as const,
-          url: "https://images.unsplash.com/photo-1518791841217-8f162f1e1131",
-          duration: 10,
-        },
-      ],
-    },
-    {
-      id: "2",
-      userId: "user2",
-      userName: "Emma Smith",
-      userAvatar: "https://randomuser.me/api/portraits/women/2.jpg",
-      uploadTime: "2025-02-11T15:40:00",
-      isViewed: false,
-      media: [
-        {
-          id: "media3",
-          type: "image" as const,
-          url: "https://images.unsplash.com/photo-1494790108377-be9c29b29330",
-          duration: 6,
-        },
-      ],
-    },
-    {
-      id: "3",
-      userId: "user3",
-      userName: "Michael Brown",
-      userAvatar: "https://randomuser.me/api/portraits/men/3.jpg",
-      uploadTime: "2025-02-11T10:42:00",
-      isViewed: false,
-      media: [
-        {
-          id: "media4",
-          type: "image" as const,
-          url: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1",
-          duration: 12,
-        },
-        {
-          id: "media5",
-          type: "image" as const,
-          url: "https://images.unsplash.com/photo-1546964124-0cce460f38ef",
-          duration: 5,
-        },
-      ],
-    },
-    {
-      id: "4",
-      userId: "user4",
-      userName: "Sophia Wilson",
-      userAvatar: "https://randomuser.me/api/portraits/women/4.jpg",
-      uploadTime: "2025-02-11T11:42:00",
-      isViewed: false,
-      media: [
-        {
-          id: "media6",
-          type: "image" as const,
-          url: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1",
-          duration: 5,
-        },
-        {
-          id: "media7",
-          type: "image" as const,
-          url: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1",
-          duration: 5,
-        },
-      ],
-    },
-  ];
+ 
 
   //BACKEND
 
@@ -299,7 +216,6 @@ export const SocialFeed: React.FC = () => {
   //feed items
   const [feedItems, setFeedItems] = useState<any[]>([]);
   //recommended users
-  const [recommendedUsers, setRecommendedUsers] = useState<any[]>([]);
   //user details
   const [userDetails, setUserDetails] = useState<any>({});
   //verifyform popup
@@ -358,10 +274,7 @@ export const SocialFeed: React.FC = () => {
       const allItems = queryData.pages.flatMap((page) => page.items || []);
       setFeedItems(allItems); // Remove the conditional update to ensure new items are always added
 
-      // Set recommended users only from first page
-      if (queryData.pages[0]?.recommendedUsers) {
-        setRecommendedUsers(queryData.pages[0].recommendedUsers);
-      }
+     
     }
   }, [queryData]);
 
@@ -534,7 +447,7 @@ export const SocialFeed: React.FC = () => {
   async function handleComment(postId: number, content: string) {
     // Optimistically add comment
 
-    console.log(content);
+    console.log(comments)
 
     const tempComment = {
       id: Date.now(),
