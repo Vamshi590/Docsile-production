@@ -7,7 +7,7 @@ import {getAuth, GoogleAuthProvider, OAuthProvider, signInWithPopup , UserCreden
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 export const firebaseConfig = {
-  apiKey: import.meta.env.VITE_apikey,
+  apiKey: import.meta.env.VITE_apiKey,
   authDomain: import.meta.env.VITE_authDomain,
   projectId: import.meta.env.VITE_projectId,
   storageBucket: import.meta.env.VITE_storageBucket,
