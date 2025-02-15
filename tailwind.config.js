@@ -19,7 +19,15 @@ export default {
   			jobColor3: '#f7e3f4',
   			jobColor4: '#e1dbf7',
   			jobColor5: '#edeff3',
-  			jobColor6: '#fcebdb'
+  			jobColor6: '#fcebdb',
+			maincl:'#3B5D8F',
+			fillc:"#6688CC",
+			urgentbg:"#F7ECD1",
+			urgenttxt:"#D9A21B",
+			buttonclr:"#F0F4FA",
+			buttonbgclr:"#D2DCF0",
+			mainbg : "#F2F2F2"
+
   		},
   		fontFamily: {
   			mainfont: [
@@ -33,7 +41,8 @@ export default {
   			sm: 'calc(var(--radius) - 4px)'
   		},
   		fontSize: {
-  			fontlit: '10px'
+  			fontlit: '10px',
+			fontvlit:"8px"
   		},
   		keyframes: {
   			marquee: {
@@ -56,7 +65,10 @@ export default {
   		animation: {
   			marquee: 'marquee var(--duration) infinite linear',
   			'marquee-vertical': 'marquee-vertical var(--duration) linear infinite'
-  		}
+  		},
+		screens :{
+			amd : "1200px"
+		}
   	}
   },
   plugins: [require("tailwindcss-animate")],

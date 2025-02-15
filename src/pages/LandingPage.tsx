@@ -18,6 +18,9 @@ import organisation6 from "../assets/landing/logo11.svg";
 import LandingFeatures from "../Components/LandingFeatures";
 import LandingTestimonials from "../Components/LandingTestimonials";
 import LandingFooter from "../Components/LandingFooter";
+import { useNavigate } from "react-router-dom";
+
+
 
 function LandingPage() {
   const logos = [
@@ -28,6 +31,18 @@ function LandingPage() {
     organisation5,
     organisation6,
   ];
+
+  const navigate = useNavigate()
+
+  function handleJoinNow(){
+    navigate("/category")
+  }
+
+  function handleSignin(){
+    navigate("/signin")
+  }
+
+  console.log(import.meta.env)
 
 
   return (
@@ -58,10 +73,10 @@ function LandingPage() {
           </a>
         </nav>
         <div className="flex space-x-4">
-          <button className="text-main hover:underline font-mainfont text-xs md:text-base">
+          <button onClick={handleJoinNow} className="text-main hover:underline font-mainfont text-xs md:text-base">
             Join Now
           </button>
-          <button className="border border-blue-700 text-main px-4 py-2 text-xs md:text-base font-mainfont rounded-full hover:bg-main hover:text-white">
+          <button onClick={handleSignin} className="border border-blue-700 text-main px-4 py-2 text-xs md:text-base font-mainfont rounded-full hover:bg-main hover:text-white">
             Sign In
           </button>
         </div>
@@ -92,7 +107,7 @@ function LandingPage() {
             sharing insights, and accessing clinical resources, Docsile brings
             the medical community together in one place.
           </p>
-          <button className="mt-6 bg-main text-white px-6 py-2.5 lg:py-3 w-48 md:w-80 rounded-full shadow-lg hover:bg-blue-800">
+          <button onClick={handleJoinNow} className="mt-6 bg-main text-white px-6 py-2.5 lg:py-3 w-48 md:w-80 rounded-full shadow-lg hover:bg-blue-900">
             Join Now
           </button>
         </div>
