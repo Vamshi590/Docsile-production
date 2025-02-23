@@ -537,9 +537,9 @@ export const Post: React.FC<PostProps> = ({
           </div>}
           {/* Interaction buttons section */}
           <div className="flex justify-between mt-4 pt-4 border-t border-neutral-300">
-            <div className="flex">
+            <div onClick={onLike} className="flex cursor-pointer">
               <div className="flex">
-                <button onClick={onLike} className="flex items-center gap-1 text-xs text-neutral-500 hover:text-slate-700">
+                <button className="flex items-center gap-1 text-xs text-neutral-500 hover:text-slate-700">
                   <img src={liked ? likedi : like} alt="" className="w-5 h-5" />
                 </button>
               </div>
@@ -550,13 +550,13 @@ export const Post: React.FC<PostProps> = ({
             </div>
 
             {showComments ? (
-                <div className="flex bg-gray-100 p-1 rounded-lg">
+                <div  onClick={() => {
+                      
+                  toggleComments();
+                }} className="flex bg-gray-100 p-1 cursor-pointer rounded-lg">
                 <div className="flex ">
                   <button
-                    onClick={() => {
-                      
-                      toggleComments();
-                    }}
+                   
                     className="flex items-center gap-1 text-xs text-neutral-500 hover:text-slate-700"
                   >
                     <img src={comment} alt="" className="w-5 h-5" />
@@ -571,13 +571,13 @@ export const Post: React.FC<PostProps> = ({
                 </div>
               </div>
             ):(
-              <div className="flex">
+              <div  onClick={() => {
+                    
+                toggleComments();
+              }} className="flex cursor-pointer">
               <div className="flex">
                 <button
-                  onClick={() => {
-                    
-                    toggleComments();
-                  }}
+                 
                   className="flex items-center gap-1 text-xs text-neutral-500 hover:text-slate-700"
                 >
                   <img src={comment} alt="" className="w-5 h-5" />
@@ -593,9 +593,9 @@ export const Post: React.FC<PostProps> = ({
             </div>
                     )}
             
-            <div className="flex">
+            <div onClick={onShare} className="flex cursor-pointer">
               <div className="flex">
-                <button onClick={onShare} className="flex items-center gap-1 text-xs text-neutral-500 hover:text-slate-700">
+                <button  className="flex items-center gap-1 text-xs text-neutral-500 hover:text-slate-700">
                   <img src={share} className="w-5 h-5" />
                 </button>
               </div>
@@ -604,9 +604,9 @@ export const Post: React.FC<PostProps> = ({
                 <span>{shares}</span>
               </div>
             </div>
-            <div className="flex">
+            <div onClick={onRepost} className="flex cursor-pointer">
               <div className="flex">
-                <button onClick={onRepost} className="flex items-center gap-1 text-xs text-neutral-500 hover:text-slate-700">
+                <button  className="flex items-center gap-1 text-xs text-neutral-500 hover:text-slate-700">
                   <img src={repost} alt="" className="w-5 h-5" />
                 </button>
               </div>

@@ -19,6 +19,7 @@ import SearchPopup from "./SearchPopup";
 import { Search} from 'lucide-react';
 import HomeButton from "./HomeButton";
 import docsile from '../../assets/landing/logo.svg';
+import { useNavigate } from "react-router-dom";
 
 interface HeaderProps {
   onNotification: () => void;
@@ -37,8 +38,8 @@ const defaultNavItems: NavItemProps[] = [
     activeIcon: <img src={home2} className="w-16 h-16" alt="" />,
     inactiveIcon: <img src={home1} className="w-16 h-16" alt="" />,
     label: "Home",
-    path: "/home",
-    isActive: true,
+    path: "/feed",
+    isActive: false,
   },
   {
     activeIcon: <img src={questions2} className="w-16 h-16" alt="" />,
@@ -87,6 +88,7 @@ export const Header: React.FC<HeaderProps> = ({
   const profileButtonRef = React.useRef<HTMLButtonElement>(null);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
+  const navigate = useNavigate()
 
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -100,6 +102,7 @@ export const Header: React.FC<HeaderProps> = ({
       isActive: i === index,
     }));
     setNavItems(updatedItems);
+    navigate(navItems[0].path)
   };
 
   const handleSearch = (query: string) => {

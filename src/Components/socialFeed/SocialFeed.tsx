@@ -273,7 +273,7 @@ export const SocialFeed: React.FC = () => {
     if (queryData) {
       const allItems = queryData.pages.flatMap((page) => page.items || []);
       setFeedItems(allItems); // Remove the conditional update to ensure new items are always added
-
+      console.log(allItems)
      
     }
   }, [queryData]);
@@ -563,6 +563,9 @@ export const SocialFeed: React.FC = () => {
           onProfile={() => console.log("Profile clicked")}
           onSearch={() => console.log("Profile clicked")}
           profile = {userDetails?.profile_picture || profile }
+          user = {userDetails.name}
+          userRole = {`${userDetails?.department} | ${userDetails.organisation_name}`}
+          userLocation= {userDetails?.city}
         />
       </div>
 
@@ -713,7 +716,7 @@ export const SocialFeed: React.FC = () => {
                         id={item.id}
                         avatar={item.user?.profile_picture}
                         name={item.User.name}
-                        bio={`${item.User.department} | ${item?.user?.specialisation_field_of_study} | ${item.User.organisation_name}`}
+                        bio={`${item.User.department} | ${item.User.specialisation_field_of_study} | ${item.User.organisation_name}`}
                         timeAgo={new Date(item.posted_at).toLocaleDateString(
                           "en-US",
                           {

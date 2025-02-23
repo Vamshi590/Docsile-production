@@ -61,7 +61,7 @@ const InfiniteSmoothSlider = () => {
 
   useEffect(() => {
     if (!isPaused) {
-      slideIntervalRef.current = setInterval(nextSlide, 3000);
+      slideIntervalRef.current = setInterval(nextSlide, 6000);
     }
     return () => {
       if (slideIntervalRef.current) {

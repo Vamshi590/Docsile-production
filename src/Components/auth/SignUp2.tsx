@@ -140,7 +140,6 @@ function SignUp2() {
 
     try {
       const response = await signInWithGooglePopup();
-      console.log(response);
 
       if (!response.user?.email) {
         toast.dismiss(loadingToast);
@@ -187,6 +186,13 @@ function SignUp2() {
     } catch (error: any) {
       toast.dismiss(loadingToast);
 
+
+      if(error.status === 409){
+        toast.dismiss(loadingToast)
+        toast.error("user already exists")
+      }
+
+      
       if (error.code === "auth/popup-closed-by-user") {
         toast.error("Sign-in popup was closed. Please try again.");
         return;
@@ -199,12 +205,15 @@ function SignUp2() {
 
       if (error.response) {
         // Backend server error response
-        toast.error(`Signup failed: ${error.response.data}`);
+        toast.dismiss(loadingToast)
+        toast.error(`Signup failed: ${error.C1.message}`);
       } else if (error.request) {
         // No response from server
+        toast.dismiss(loadingToast)
         toast.error("Could not connect to server. Please try again later.");
       } else {
         // Other errors
+        toast.dismiss(loadingToast)
         toast.error("An unexpected error occurred. Please try again.");
       }
 

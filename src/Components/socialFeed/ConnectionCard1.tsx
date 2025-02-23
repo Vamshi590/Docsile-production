@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { ChevronUp, ChevronDown } from "lucide-react";
+import profile from "../../assets/icon/profile.svg"
 
 interface Person {
   id: number;
@@ -46,9 +47,9 @@ const ConnectionCard1: React.FC<ConnectionCard1Props> = ({ connections }) => {
             <div className="flex items-center">
               <div className="w-14 h-14 rounded-full overflow-hidden">
                 <img
-                  src={person.profile_picture}
+                  src={person.profile_picture || profile}
                   alt={person.name}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover shrink-0"
                 />
               </div>
               <div className="ml-3">

@@ -20,6 +20,11 @@ const SignupPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if( !formData.firstName || !formData.lastName){
+      toast.error("please enter all the details", {duration : 1000})
+      return
+    }
+
     const loading =  toast.loading("Noting your name");
     
     try {

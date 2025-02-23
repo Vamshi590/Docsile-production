@@ -26,7 +26,14 @@ const SignupPage2: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if(!formData.institute || !formData.degree || !formData.specialization){
+      toast.error("please enter all the details", {duration : 1000})
+      return
+    }
+
     const loading = toast.loading("We are almost there, adding your details")
+
+
 
     try{
 

@@ -157,7 +157,6 @@ const PostPopup: React.FC<PostPopupProps> = ({
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const text = e.target.value;
-    console.log(text);
     if (text.length <= 100) {
       setPostTitle(text);
       setTitleCount(100 - text.length);
@@ -597,7 +596,7 @@ const PostPopup: React.FC<PostPopupProps> = ({
               imageURLs = await Promise.all(uploadPromises);
             }
 
-            const { data: postData } = await axios.post(
+            await axios.post(
               `https://128i1lirkh.execute-api.ap-south-1.amazonaws.com/dev/publish-post/${userId}`,
               {
                 title: postTitle,
@@ -606,7 +605,6 @@ const PostPopup: React.FC<PostPopupProps> = ({
               }
             );
 
-            console.log(postData);
 
             setPostTitle("");
             setPostContent("");

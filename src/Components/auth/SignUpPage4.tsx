@@ -33,11 +33,14 @@ const SignUpPage4: React.FC = () => {
   const id = parseInt(userid)
   const navigate = useNavigate()
 
+
   async function handleFinish(e: React.FormEvent){
     e.preventDefault();
 
+    
     if(!image){
-      toast.error("please select image")
+      toast.error("please select image",{duration : 1000})
+      return
     }
 
     const loading = toast.loading("Done, let's get to your network")
@@ -158,6 +161,12 @@ const SignUpPage4: React.FC = () => {
             >
               Finish
             </button>
+
+            <div onClick={() => navigate('/feed')} className="mt-3 flex justify-center cursor-pointer" >
+              <p className=" hover:underline ">Skip</p>
+            </div>
+
+
           </div>
         </div>
       </div>
