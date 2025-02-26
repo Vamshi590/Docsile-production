@@ -36,7 +36,7 @@ import {
   handleaddMemberships,
   handleaddskills,
 } from "@/api/profile";
-import { Toaster } from "sonner";
+import { toast, Toaster } from "sonner";
 
 interface ExperienceItem {
   id: number;
@@ -95,9 +95,6 @@ interface Workplace {
   organization: string;
   img: string;
 }
-
-
-
 
 interface Job {
   id: number;
@@ -218,7 +215,6 @@ const Profile: React.FC = () => {
     }, 3000);
     return () => clearInterval(timer);
   }, []);
-
 
   const ActivitySection = () => (
     <div className="space-y-3 mt-3 bg-mainbg ">
@@ -574,6 +570,48 @@ const Profile: React.FC = () => {
     }
   };
 
+  const handleProfilePicUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const loading = toast.loading("Updating profile photo");
+    try {
+      // Get presigned URL from backend
+      const { data } = await axios.get(
+        `https://128i1lirkh.execute-api.ap-south-1.amazonaws.com/dev/uploads/url`
+      );
+
+      // Upload to S3 without credentials
+      await axios.put(data.uploadURL, file, {
+        headers: {
+          "Content-Type": file.type,
+        },
+        withCredentials: false,
+      });
+
+      // Save image URL to database
+      await axios.post(
+        `https://128i1lirkh.execute-api.ap-south-1.amazonaws.com/dev/user/update-profile-picture/${id}`,
+        {
+          userId: id,
+          imageUrl: data.imageURL,
+        }
+      );
+
+      toast.dismiss(loading);
+
+      toast.success("Profile picture uploaded successfully");
+      // Optionally refresh the page or update the UI
+      window.location.reload();
+    } catch (error) {
+      toast.dismiss(loading);
+      toast.error("Failed to upload profile picture");
+      console.error(error);
+    }
+  };
+
   return (
     <div className="min-h-screen font-fontsm mx-auto bg-mainbg ">
       {/* Mobile Header - Only visible on mobile */}
@@ -617,15 +655,40 @@ const Profile: React.FC = () => {
               <div className="flex flex-col  items-center text-center">
                 <div className="lg:border p-3 lg:py-8 bg-white shadow-sm rounded-xl w-full border-gray-200">
                   <div className="flex flex-row lg:flex-col space-x-6  items-center">
+                    {/* <div className="relative w-20 h-20  mx-auto rounded-full overflow-hidden shadow-lg">
+                      <img
+                        src={userDetails?.profile_picture || profile}
+                        alt="Profile"
+                        className="w-full h-full object-cover "
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-b from-transparent to-white opacity-20 rounded-full" />
+
+                      <label className="absolute bottom-0 right-0 p-2 bg-main rounded-full cursor-pointer hover:bg-opacity-90 transition-all">
+                        <input
+                          type="file"
+                          className="hidden"
+                          accept="image/*"
+                          onChange={handleProfilePicUpload}
+                        />
+                        <FaPlus className="w-4 h-4 text-white" />
+                      </label>
+                    </div> */}
+
                     <div className="relative shrink-0 ">
                       <img
                         src={userDetails?.profile_picture || profile}
                         alt="Profile"
                         className=" w-20 h-20 md:w-28 md:h-28 shrink-0 rounded-full object-cover"
                       />
-                      <div className="absolute bottom-0 right-0  w-6 h-6 flex items-center justify-center text-xs">
+                      <label className="absolute bottom-0 right-0  w-6 h-6 flex items-center cursor-pointer justify-center text-xs">
+                        <input
+                          type="file"
+                          className="hidden"
+                          accept="image/*"
+                          onChange={handleProfilePicUpload}
+                        />
                         <img src={add} alt="" />
-                      </div>
+                      </label>
                     </div>
                     <div className="flex flex-col lg:items-center lg:space-y-2">
                       <h1 className=" text-lg font-semibold text-gray-900 lg:mt-2 ">
@@ -652,13 +715,13 @@ const Profile: React.FC = () => {
                       </div>
                       <div className="text-center">
                         <div className="font-semibold text-sm text-fillc">
-                        {userDetails?.postsCount}
+                          {userDetails?.postsCount}
                         </div>
                         <div className="text-sm text-gray-700">Posts</div>
                       </div>
                       <div className="text-center">
                         <div className="font-semibold text-sm text-fillc">
-                        {userDetails?.questionCount}
+                          {userDetails?.questionCount}
                         </div>
                         <div className="text-sm text-gray-700">Questions</div>
                       </div>

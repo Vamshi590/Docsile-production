@@ -9,6 +9,7 @@ import SignupPage3 from "@/Components/auth/SignUpPage3"
 import SignUpPage4 from "@/Components/auth/SignUpPage4"
 import { SocialFeed } from "@/Components/socialFeed/SocialFeed"
 import Profile from "@/Components/profile/Profile"
+import Networkpage from "@/Components/Network/Networkpage"
 
 export const router = createBrowserRouter([
     {
@@ -23,6 +24,7 @@ export const router = createBrowserRouter([
     {path : "/signup/student/profile/location/:id" , element : <SignupPage3/>},
     {path : "/signup/student/profile/profile-picture/:id", element : <SignUpPage4/>},
     {path : "/feed" , element : <SocialFeed/>},
-    {path : "/profile/:id", element : <Profile/>}
+    {path : "/profile/:id", element : <Profile/>},
+    {path : "/network/:id", element : <Networkpage/>}
   
   ])

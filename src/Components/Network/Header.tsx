@@ -33,7 +33,8 @@ interface HeaderProps {
   items?: NavItemProps[];
 }
 
-const id = localStorage.getItem('Id');
+
+const id = localStorage.getItem('Id')
 
 const defaultNavItems: NavItemProps[] = [
   {
@@ -41,7 +42,7 @@ const defaultNavItems: NavItemProps[] = [
     inactiveIcon: <img src={home1} className="w-16 h-16" alt="" />,
     label: "Home",
     path: "/feed",
-    isActive: true,
+    isActive: false,
   },
   {
     activeIcon: <img src={questions2} className="w-16 h-16" alt="" />,
@@ -62,7 +63,7 @@ const defaultNavItems: NavItemProps[] = [
     inactiveIcon: <img src={connect1} className="w-16 h-16" alt="" />,
     label: "Connect",
     path: `/network/${id}`,
-    isActive: false,
+    isActive: true,
   },
   
   {
@@ -89,10 +90,7 @@ export const Header: React.FC<HeaderProps> = ({
   const [isSearchOpen, setIsSearchOpen] = useState<boolean>(false);
   const profileButtonRef = React.useRef<HTMLButtonElement>(null);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const navigate = useNavigate();
-
-
-
+  const navigate = useNavigate()
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -105,7 +103,7 @@ export const Header: React.FC<HeaderProps> = ({
       isActive: i === index,
     }));
     setNavItems(updatedItems);
-    navigate(updatedItems[index].path);
+    navigate(updatedItems[index].path)
   };
 
   const handleSearch = (query: string) => {

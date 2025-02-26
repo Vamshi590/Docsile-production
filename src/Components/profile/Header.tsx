@@ -33,6 +33,8 @@ interface HeaderProps {
   items?: NavItemProps[];
 }
 
+const id = localStorage.getItem('Id');
+
 const defaultNavItems: NavItemProps[] = [
   {
     activeIcon: <img src={home2} className="w-16 h-16" alt="" />,
@@ -45,21 +47,21 @@ const defaultNavItems: NavItemProps[] = [
     activeIcon: <img src={questions2} className="w-16 h-16" alt="" />,
     inactiveIcon: <img src={questions1} className="w-16 h-16" alt="" />,
     label: "Questions",
-    path: "/questionsfeed",
+    path: "/feed",
     isActive: false,
   },
   {
     activeIcon: <img src={videos2} className="w-16 h-16" alt="" />,
     inactiveIcon: <img src={videos1} className="w-16 h-16" alt="" />,
     label: "Videos",
-    path: "/videos",
+    path: "/feed",
     isActive: false,
   },
   {
     activeIcon: <img src={connect2} className="w-16 h-16" alt="" />,
     inactiveIcon: <img src={connect1} className="w-16 h-16" alt="" />,
     label: "Connect",
-    path: "/connect",
+    path: `/network/${id}`,
     isActive: false,
   },
   
@@ -67,7 +69,7 @@ const defaultNavItems: NavItemProps[] = [
     activeIcon: <img src={careers2} className="w-16 h-16" alt="" />,
     inactiveIcon: <img src={careers1} className="w-16 h-16" alt="" />,
     label: "Careers",
-    path: "/careers",
+    path: "/feed",
     isActive: false,
   },
 ];
