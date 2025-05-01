@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Button } from '../ui/button';
-import { Card } from "../../Components/ui/card";
+import { Card } from "../ui/Card";
 import { Slider } from '../ui/slider';
 import { ChevronDown,ChevronUp , X } from 'lucide-react';
 
