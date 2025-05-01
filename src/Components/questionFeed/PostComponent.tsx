@@ -2,7 +2,7 @@ import React from "react";
 import { Bookmark, MoreVertical,  Share2 } from "lucide-react";
 import { Carousel } from "react-responsive-carousel";
 import RightArrow from "../../assets/icon/lucide_arrow-up.svg";
-import LeftArrow from "../../assets/icon/vector.svg";
+import LeftArrow from "../../assets/icon/Vector.svg";
 // import RelatedQuestions from "./RelatedQuestions";
 import AnswerList from "./AnswerList";
 import "react-responsive-carousel/lib/styles/carousel.min.css";
