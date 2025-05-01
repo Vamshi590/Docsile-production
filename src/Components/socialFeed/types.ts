@@ -15,6 +15,7 @@ export interface PostProps {
   content: string;
   images: string[];
   likes: number;
+  userId : number;
   comments: number;
   shares: number;
   liked : boolean;

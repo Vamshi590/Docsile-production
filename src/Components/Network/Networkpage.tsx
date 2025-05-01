@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Header } from "./Header";
+import { Header } from "../common/Header";
 import profile from "../../assets/icon/profile.svg";
 import {
   X,
@@ -12,19 +12,16 @@ import {
 import { Navigation } from "./Navigation";
 import axios from "axios";
 import { toast } from "sonner";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { truncateString } from "@/functions";
-
-
+import { useQuery } from "@tanstack/react-query";
+import Skeleton from 'react-loading-skeleton';
+import 'react-loading-skeleton/dist/skeleton.css';
 
 const Networkpage = () => {
-
-
   const scrollContainerRefs = useRef<{
     [key: string]: HTMLDivElement | null;
   }>({});
-
-  
 
   const handleTouchScroll = (container: HTMLDivElement | null) => {
     let startX: number;
@@ -70,6 +67,7 @@ const Networkpage = () => {
     setIsExpanded(!isExpanded);
   };
 
+  const navigate = useNavigate();
 
   const renderPeopleSection = (title: string, users: any[]) => {
     const handleScroll = (direction: "left" | "right", containerId: string) => {
@@ -88,9 +86,9 @@ const Networkpage = () => {
     };
 
     return (
-      <div className="border border-gray-100 rounded-2xl mt-3">
+      <div className="border border-gray-100 rounded-2xl mb-2">
         <div className="flex justify-between bg-buttonclr items-center px-3 rounded-t-2xl py-2">
-          <div className="text-sm font-medium text-main">
+          <div className="text-sm font-medium text-black">
             People you may know from {title}
           </div>
         </div>
@@ -111,12 +109,14 @@ const Networkpage = () => {
                 handleTouchScroll(el);
               }
             }}
+            
             className="flex space-x-3 pl-2 py-3 bg-white overflow-x-auto no-scrollbar rounded-b-xl relative scroll-smooth"
           >
-            {users.map((user) => (
+            {users.map((user, idx) => (
               <div
-                key={user.id}
-                className="max-w-[200px] min-h-[240px] md:min-h-[270px] relative flex-shrink-0 items-center justify-center border border-gray-100 rounded-2xl"
+              onClick={() => {navigate(`/connect/profile/${user.id}`)}}
+                key={user.id || idx}
+                className="max-w-[200px] min-h-[240px] md:min-h-[270px] cursor-pointer relative flex-shrink-0 items-center justify-center border border-gray-100 rounded-2xl"
               >
                 <button
                   className="absolute right-1 top-1 bg-white rounded-full p-1 hover:bg-gray-100 transition-colors"
@@ -134,11 +134,13 @@ const Networkpage = () => {
                     />
                   </div>
                   <div className="text-sm md:text-base font-medium pt-4">
-                    {truncateString(user.name , 20)}
+                    {truncateString(user.name, 20)}
                   </div>
                   <p className="text-xs text-gray-500 my-1">
-                    {truncateString(`${user.department} | ${user.organisation_name} |
-                    ${user.specialisation_field_of_study}`, 75)} 
+                    {truncateString(
+                      `${user.department} | ${user.organisation_name} | ${user.specialisation_field_of_study}`,
+                      75
+                    )}
                   </p>
                   <div className="flex flex-row items-center mb-2 pt-3">
                     <div className="text-fontvlit text-gray-400">
@@ -146,14 +148,13 @@ const Networkpage = () => {
                     </div>
                   </div>
                   <button
-                    onClick={() => handleFollowClick(user.id)}
-                    className={`py-1.5 px-3 w-1/2 text-xs absolute bottom-2 ${
-                      followingStatus[user.id]
+                    onClick={(e) => {e.stopPropagation(); handleFollowClick(user.id)}}
+                    className={`py-1.5 px-3 w-1/2 text-xs absolute bottom-2 ${followingStatus[user.id]
                         ? "text-black bg-white border border-main "
                         : "text-white bg-main border border-main"
-                    } rounded-3xl transition-colors`}
+                      } rounded-3xl transition-colors`}
                   >
-                    {followingStatus[user.id] ? "Following" : "Follow"}
+                    {followingStatus[user.id] ? "Request sent" : "Follow"}
                   </button>
                 </div>
               </div>
@@ -189,8 +190,9 @@ const Networkpage = () => {
     invitations: [],
   });
 
-  
-  const displayedPeople = isExpanded ? suggestedConnections?.invitations : suggestedConnections?.invitations?.slice(0, 2);
+  const displayedPeople = isExpanded
+    ? suggestedConnections?.invitations
+    : suggestedConnections?.invitations?.slice(0, 2);
 
   const { id } = useParams();
   const userid = localStorage.getItem("Id") || id;
@@ -199,26 +201,33 @@ const Networkpage = () => {
     [key: string]: boolean;
   }>({});
 
+  // Track confirmed invitations
+  const [confirmedInvitations, setConfirmedInvitations] = useState<{ [key: string]: boolean }>({});
+  // Track loading state for confirm button
+  const [loadingConfirm, setLoadingConfirm] = useState<{ [key: string]: boolean }>({});
+
+  const { data: connectionsData } = useQuery({
+    queryKey: ["user", userid],
+    queryFn: async () => {
+      const response = await axios.get(
+        `https://128i1lirkh.execute-api.ap-south-1.amazonaws.com/dev/connections/${userid}`
+      );
+      return response.data;
+    },
+    staleTime: 1000 * 60 * 10, // Keep data fresh for 10 minutes
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchInterval: false,
+  });
+
   useEffect(() => {
-    async function fetchConnections() {
-      try {
-        // Fetch suggested connections
-        const suggestedResponse = await axios.get(
-          `https://128i1lirkh.execute-api.ap-south-1.amazonaws.com/dev/connections/${userid}`
-        );
-        setSuggestedConnections(suggestedResponse.data.response);
-        setUserDetails(suggestedResponse.data.response.user);
-
-        console.log("Suggested connections:", suggestedResponse.data);
-
-        // Fetch network connections (followers/following)
-      } catch (e) {
-        console.error("Error fetching connections:", e);
-      }
+    if (connectionsData) {
+      setSuggestedConnections(connectionsData.response);
+      setUserDetails(connectionsData.response.user);
     }
+  }, [connectionsData]);
 
-    fetchConnections();
-  }, [userid]);
+  console.log(userDetails)
 
   async function handleFollowClick(followingId: string) {
     setFollowingStatus((prev) => ({ ...prev, [followingId]: true }));
@@ -244,20 +253,49 @@ const Networkpage = () => {
     }
   }
 
+  async function handleConfirm(followingId: string) {
+
+    try {
+      const response = await axios.post(`https://128i1lirkh.execute-api.ap-south-1.amazonaws.com/dev/confirm/follow/${id}/${followingId}`)
+
+      const invalidateCache = await axios.post(
+        `https://128i1lirkh.execute-api.ap-south-1.amazonaws.com/dev/connections/${userid}/invalidate-cache`
+      );
+
+      console.log("Invalidate cache response:", invalidateCache);
+
+      if (response) {
+        toast.success("Successfully followed!");
+      }
+    } catch (e) {
+      console.log(e)
+    }
+
+  }
+
+  async function handleDeny(followingId: string) {
+    try {
+      const response = await axios.post(`https://128i1lirkh.execute-api.ap-south-1.amazonaws.com/dev/deny/follow/${id}/${followingId}`)
+
+      const invalidateCache = await axios.post(
+        `https://128i1lirkh.execute-api.ap-south-1.amazonaws.com/dev/connections/${userid}/invalidate-cache`
+      );
+
+      console.log("Invalidate cache response:", invalidateCache);
+
+      if (response) {
+        toast.success("Successfully denied!");
+      }
+    } catch (e) {
+      console.log(e)
+    }
+  }
+
   return (
     <div className="flex flex-col min-h-screen bg-mainbg  font-fontsm">
       <div className="bg-white border-b sticky top-0 z-50">
         {/* Header */}
-        <Header
-          onNotification={() => console.log("Notification clicked")}
-          onMessage={() => console.log("Message clicked")}
-          onProfile={() => console.log("Profile clicked")}
-          onSearch={() => console.log("Profile clicked")}
-          profile={userDetails?.profile_picture || profile}
-          user={userDetails?.name}
-          userRole={`${userDetails?.department} | ${userDetails?.organisation_name}`}
-          userLocation={userDetails?.city}
-        />
+        <Header />
       </div>
 
       {/* Main Content Area */}
@@ -267,41 +305,55 @@ const Networkpage = () => {
           <div className="top-[calc(theme(spacing.24)+1px)] space-y-6">
             {/* Profile Card */}
             <div className="bg-white rounded-2xl p-6 flex shrink shadow-sm">
-              <div className="flex flex-col items-center">
-                <img
-                  src={userDetails?.profile_picture || profile}
-                  alt={userDetails?.name}
-                  className="w-20 md:w-24 md:h-24 h-20 rounded-full mb-3"
-                />
-                <h2 className="text-base font-semibold text-gray-900 mb-0.5">
-                  <span className="text-fillc font-semibold bg-fillc bg-opacity-30 px-2 mr-1 rounded-lg">
-                    Dr.
-                  </span>
-                  {userDetails?.name}
-                </h2>
-                <p className="text-sm text-gray-600 mb-1">
-                  {userDetails?.department}
-                </p>
-                <p className="text-xs text-gray-500 text-center mb-5">
-                  {`${userDetails?.specialisation_field_of_study} | ${userDetails.organisation_name}`}
-                </p>
-
-                <div className="grid grid-cols-3 w-full gap-4 text-center  border-t pt-4">
-                  <StatItem
-                    value={userDetails?._count?.followers}
-                    label="Followers"
-                  />
-                  <StatItem
-                    value={userDetails?._count?.posts}
-                    label="Posts"
-                    className="border-x px-4"
-                  />
-                  <StatItem
-                    value={userDetails?._count?.questions}
-                    label="Questions"
-                  />
+              {(!connectionsData) ? (
+                <div className="flex flex-col items-center w-full">
+                  <Skeleton circle width={96} height={96} className="mb-3" />
+                  <Skeleton width={120} height={20} className="mb-2" />
+                  <Skeleton width={80} height={16} className="mb-1" />
+                  <Skeleton width={160} height={14} className="mb-5" />
+                  <div className="grid grid-cols-3 w-full gap-4 text-center border-t pt-4">
+                    <Skeleton width={40} height={16} />
+                    <Skeleton width={40} height={16} />
+                    <Skeleton width={40} height={16} />
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <div className="flex flex-col items-center">
+                  <img
+                    src={userDetails?.profile_picture || profile}
+                    alt={userDetails?.name}
+                    className="w-20 md:w-24 md:h-24 h-20 rounded-full mb-3"
+                  />
+                  <h2 className="text-base font-semibold text-gray-900 mb-0.5">
+                    <span className="text-fillc font-semibold bg-fillc bg-opacity-30 px-2 mr-1 rounded-lg">
+                      Dr.
+                    </span>
+                    {userDetails?.name}
+                  </h2>
+                  <p className="text-sm text-gray-600 mb-1">
+                    {userDetails?.department}
+                  </p>
+                  <p className="text-xs text-gray-500 text-center mb-5">
+                    {`${userDetails?.specialisation_field_of_study} | ${userDetails.organisation_name}`}
+                  </p>
+
+                  <div className="grid grid-cols-3 w-full gap-4 text-center  border-t pt-4">
+                    <StatItem
+                      value={userDetails?._count?.followers}
+                      label="Followers"
+                    />
+                    <StatItem
+                      value={userDetails?._count?.posts}
+                      label="Posts"
+                      className="border-x px-4"
+                    />
+                    <StatItem
+                      value={userDetails?._count?.questions}
+                      label="Questions"
+                    />
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -319,134 +371,213 @@ const Networkpage = () => {
             </div>
           </div>
 
-          { suggestedConnections?.invitations?.length > 0 &&  <div className="w-full">
-            <div className="flex justify-between bg-buttonclr items-center px-3 rounded-t-2xl py-2">
-              <div className="text-sm font-medium text-main">
-                Invitations ({suggestedConnections?.invitations?.length})
+          {!connectionsData ? (
+            <div className="space-y-4">
+              {/* Skeleton for invitations */}
+              <div className="w-full">
+                <Skeleton height={36} width={240} className="mb-2" />
+                <div className="border bg-white border-gray-100 rounded-b-2xl px-4 pt-4">
+                  {[...Array(2)].map((_, i) => (
+                    <div key={i} className="flex items-center justify-between mb-3 pb-3 border-b last:border-b-0">
+                      <div className="flex items-center">
+                        <Skeleton circle width={48} height={48} />
+                        <div className="ml-3">
+                          <Skeleton width={80} height={16} />
+                          <Skeleton width={120} height={12} />
+                          <Skeleton width={60} height={10} />
+                        </div>
+                      </div>
+                      <div className="flex space-x-2">
+                        <Skeleton width={60} height={24} />
+                        <Skeleton width={60} height={24} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <div
-                className="text-xs text-gray-400 cursor-pointer flex items-center gap-1"
-                onClick={toggleExpand}
-              >
-                {isExpanded ? (
-                  <span className="flex items-center">
-                    Show Less <ChevronUp className="w-4 h-4" />
-                  </span>
-                ) : (
-                  <span className="flex items-center">
-                    See More <ChevronDown className="w-4 h-4" />
-                  </span>
-                )}
+              {/* Skeleton for suggestions */}
+              <div className="rounded-xl py-3 bg-white mt-3">
+                <Skeleton width={180} height={18} className="mb-2 ml-4" />
+                {[...Array(2)].map((_, i) => (
+                  <div key={i} className="rounded-2xl bg-white border border-gray-150 my-2 m-3">
+                    <div className="flex items-center justify-between p-3">
+                      <div className="flex items-start space-x-3">
+                        <Skeleton circle width={48} height={48} />
+                        <div className="flex flex-col">
+                          <Skeleton width={80} height={16} />
+                          <Skeleton width={120} height={12} />
+                          <Skeleton width={60} height={10} />
+                        </div>
+                      </div>
+                      <div>
+                        <Skeleton width={72} height={28} />
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
-            <div
-              className={`border bg-white border-gray-100 rounded-b-2xl  px-4 pt-4 transition-all duration-300 ${
-                isExpanded ? "max-h-[1000px]" : "max-h-[200px]"
-              } overflow-hidden`}
-            >
-              {displayedPeople?.map((person) => (
-                <div
-                  key={person.id}
-                  className="flex items-center justify-between mb-3 pb-3 border-b last:border-b-0"
-                >
-                  <div className="flex items-center">
-                    <div className="w-12 md:w-16 md:h-16 h-12 rounded-full shrink-0">
-                      <img
-                        src={person?.follower?.profile_picture || profile}
-                        alt=""
-                        className="w-full h-full rounded-full shrink-0 object-cover"
-                      />
+          ) : (
+            <>
+              {suggestedConnections?.invitations?.length > 0 && (
+                <div className="w-full">
+                  <div className="flex justify-between bg-buttonclr items-center px-3 rounded-t-2xl py-2">
+                    <div className="text-sm font-medium text-black">
+                      Invitations ({suggestedConnections?.invitations?.length})
                     </div>
-                    <div className="ml-3">
-                      <div className="text-xs md:text-sm font-medium">
-                        {person?.follower?.name}
-                      </div>
+                    {suggestedConnections?.invitations?.length > 2 && <div
+                      className="text-xs text-gray-400 cursor-pointer flex items-center gap-1"
+                      onClick={toggleExpand}
+                    >
+                      {isExpanded ? (
+                        <span className="flex items-center">
+                          Show Less <ChevronUp className="w-4 h-4" />
+                        </span>
+                      ) : (
+                        <span className="flex items-center">
+                          See More <ChevronDown className="w-4 h-4" />
+                        </span>
+                      )}
+                    </div>}
+                  </div>
+                  <div
+                    className={`border bg-white border-gray-100 rounded-b-2xl  px-4 pt-4 transition-all duration-300 ${isExpanded ? "max-h-[1000px]" : "max-h-[200px]"
+                      } overflow-hidden`}
+                  >
+                    {displayedPeople?.map((person, idx) => (
                       <div
-                        className=" text-fontlit md:text-xs text-gray-500"
-                        
+                        key={person?.follower?.id || person.id || idx}
+                        className="flex items-center justify-between mb-3 pb-3 border-b last:border-b-0"
                       >
-                        {truncateString(`${person?.follower?.department} | ${person?.follower?.specialisation_field_of_study} | ${person?.follower?.organisation_name}`, 50)}
-                      </div>
-                      <div className="text-xs text-gray-400">
-                        {person.timeAgo}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex space-x-2">
-                    <button className="px-4 py-1 text-xs text-white bg-maincl rounded-xl transition-colors hover:bg-opacity-90">
-                      Confirm
-                    </button>
-                    <button className="px-4 py-1 text-xs text-gray-600 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors">
-                      Deny
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>}
-
-          {suggestedConnections.organization_matches?.length > 0 &&
-            renderPeopleSection(
-              userDetails.organisation_name,
-              suggestedConnections.organization_matches
-            )}
-
-          {suggestedConnections.location_matches?.length > 0 &&
-            renderPeopleSection(
-              userDetails?.location,
-              suggestedConnections.location_matches
-            )}
-
-          {suggestedConnections.department_matches?.length > 0 &&
-            renderPeopleSection(
-              userDetails?.department,
-              suggestedConnections.department_matches
-            )}
-          {suggestedConnections.other_users?.length > 0 && (
-            <div className="rounded-xl py-3 bg-white mt-3">
-              <div className="text-base text-main pl-4 pb-2">
-                More suggestions for you
-              </div>
-              {suggestedConnections.other_users.map((user) => (
-                <div
-                  key={user.id}
-                  className="rounded-2xl bg-white border border-gray-150 my-2 m-3"
-                >
-                  <div className="flex items-center justify-between p-3">
-                    <div className="flex items-start space-x-3">
-                      <div className="flex-shrink-0">
-                        <img
-                          src={user?.profile_picture || profile}
-                          alt=""
-                          className="w-12 md:w-16 md:h-16 h-12 rounded-full object-cover"
-                        />
-                      </div>
-                      <div className="flex flex-col">
-                        <div className="text-sm font-medium">{user.name}</div>
-                        <div className="text-xs text-gray-500">
-                          {user.department} | {user.organisation_name}
+                        <div className="flex items-center">
+                          <div className="w-12 md:w-16 md:h-16 h-12 rounded-full shrink-0">
+                            <img
+                              src={person?.follower?.profile_picture || profile}
+                              alt=""
+                              className="w-full h-full rounded-full shrink-0 object-cover"
+                            />
+                          </div>
+                          <div className="ml-3">
+                            <div className="text-xs md:text-sm font-medium">
+                              {person?.follower?.name}
+                            </div>
+                            <div
+                              className=" text-fontlit md:text-xs text-gray-500"
+                            // style={{ maxWidth: "150px" }}
+                            >
+                              {truncateString(
+                                `${person?.follower?.department} | ${person?.follower?.specialisation_field_of_study} | ${person?.follower?.organisation_name}`,
+                                50
+                              )}
+                            </div>
+                            <div className="text-xs text-gray-400">
+                              {person.timeAgo}
+                            </div>
+                          </div>
                         </div>
-                        <div className="text-xs text-gray-400 mt-1 flex items-center">
-                          {user.mutuals} mutual connections
+                        <div className="flex space-x-2">
+                          {confirmedInvitations[person?.follower?.id] ? (
+                            <span className="px-4 py-1 text-xs text-green-600 bg-green-50 rounded-xl">Following</span>
+                          ) : (
+                            <>
+                              <button
+                                onClick={async () => {
+                                  setLoadingConfirm((prev) => ({ ...prev, [person?.follower?.id]: true }));
+                                  await handleConfirm(person?.follower?.id);
+                                  setConfirmedInvitations((prev) => ({ ...prev, [person?.follower?.id]: true }));
+                                  setLoadingConfirm((prev) => ({ ...prev, [person?.follower?.id]: false }));
+                                }}
+                                className="px-4 py-1 text-xs text-white bg-maincl rounded-xl transition-colors hover:bg-opacity-90 flex items-center justify-center min-w-[70px]"
+                                disabled={loadingConfirm[person?.follower?.id]}
+                              >
+                                {loadingConfirm[person?.follower?.id] ? (
+                                  <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                                  </svg>
+                                ) : (
+                                  "Confirm"
+                                )}
+                              </button>
+                              <button
+                                onClick={() => handleDeny(person?.follower?.id)}
+                                className="px-4 py-1 text-xs text-gray-600 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors"
+                              >
+                                Deny
+                              </button>
+                            </>
+                          )}
                         </div>
                       </div>
-                    </div>
-                    <div>
-                      <button
-                        onClick={() => handleFollowClick(user.id)}
-                        className={`py-1.5 px-3 text-xs ${
-                          followingStatus[user.id]
-                            ? "text-black bg-white border border-main "
-                            : "text-white bg-maincl"
-                        } rounded-3xl transition-colors`}
-                      >
-                        {followingStatus[user.id] ? "Following" : "Follow"}
-                      </button>
-                    </div>
+                    ))}
                   </div>
                 </div>
-              ))}
-            </div>
+              )}
+
+              {suggestedConnections.organization_matches?.length > 0 &&
+                renderPeopleSection(
+                  userDetails?.organisation_name,
+                  suggestedConnections.organization_matches
+                )}
+
+              {suggestedConnections.location_matches?.length > 0 &&
+                renderPeopleSection(
+                  userDetails?.city,
+                  suggestedConnections.location_matches
+                )}
+
+              {suggestedConnections.department_matches?.length > 0 &&
+                renderPeopleSection(
+                  userDetails?.department,
+                  suggestedConnections.department_matches
+                )}
+              {suggestedConnections.other_users?.length > 0 && (
+                <div className="rounded-xl py-3 bg-white mt-3">
+                  <div className="text-base text-main pl-4 pb-2">
+                    More suggestions for you
+                  </div>
+                  {suggestedConnections.other_users.map((user, idx) => (
+                    <div
+                      key={user.id || idx}
+                      className="rounded-2xl bg-white border border-gray-150 my-2 m-3 cursor-pointer"
+                      onClick={() => {navigate(`/connect/profile/${user.id}`)}}
+                    >
+                      <div className="flex items-center justify-between p-3">
+                        <div className="flex items-start space-x-3">
+                          <div className="flex-shrink-0">
+                            <img
+                              src={user?.profile_picture || profile}
+                              alt=""
+                              className="w-12 md:w-16 md:h-16 h-12 rounded-full object-cover"
+                            />
+                          </div>
+                          <div className="flex flex-col">
+                            <div className="text-sm font-medium">{user.name}</div>
+                            <div className="text-xs text-gray-500">
+                              {user.department} | {user.organisation_name}
+                            </div>
+                            <div className="text-xs text-gray-400 mt-1 flex items-center">
+                              {user.mutuals} mutual connections
+                            </div>
+                          </div>
+                        </div>
+                        <div>
+                          <button
+                            onClick={(e) => {e.stopPropagation(); handleFollowClick(user.id)}}
+                            className={`py-1.5 px-3 text-xs ${followingStatus[user.id]
+                                ? "text-black bg-white border border-main "
+                                : "text-white bg-maincl"
+                              } rounded-3xl transition-colors`}
+                          >
+                            {followingStatus[user.id] ? "Request sent" : "Follow"}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
           )}
         </div>
 

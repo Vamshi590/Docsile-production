@@ -48,7 +48,7 @@ function LandingPage() {
   return (
     <div className="min-h-screen bg-gradient-to-r from-white via-gray-50 to-white">
       {/* Navbar */}
-      <header className="flex justify-between items-center px-4  lg:px-16 py-4 ">
+      <header className="flex justify-between items-center px-4 sticky top-0 z-50 bg-gradient-to-r from-white via-gray-50 to-white  lg:px-16 py-4 ">
         <div className="flex items-center space-x-3">
           <img src={logo} alt="Docsile Logo" className="h-8" />
         </div>

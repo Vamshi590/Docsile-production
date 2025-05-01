@@ -50,37 +50,57 @@ function LoginPage() {
     const loggingIn = toast.loading("Logging in");
 
     try {
-      try {
-        await signInWithEmailAndPassword(auth, values.email, values.password);
-        const response = await axios.post(
-          `https://128i1lirkh.execute-api.ap-south-1.amazonaws.com/dev/auth/signin`,
-          {
-            date: new Date().toISOString(),
-            email: values.email,
-            password: values.password,
-          }
-        );
+      await signInWithEmailAndPassword(auth, values.email, values.password);
+      const response = await axios.post(
+        `https://128i1lirkh.execute-api.ap-south-1.amazonaws.com/dev/auth/signin`,
+        {
+          date: new Date().toISOString(),
+          email: values.email,
+          password: values.password,
+        }
+      );
 
-
-        const { redirectUrl, id } = response.data;
-
-        localStorage.setItem("Id", id);
-
-        navigate(redirectUrl);
-      } catch (e: any) {
-        toast.error(e.error || "something went wrong");
-      }
-
+      const { redirectUrl, id } = response.data;
+      localStorage.setItem("Id", id);
       toast.dismiss(loggingIn);
+      navigate(redirectUrl);
     } catch (error: any) {
       toast.dismiss(loggingIn);
-      if (error.response) {
-        toast.error(`Error: ${error.response.data}`);
-      } else if (error.request) {
-        toast.error("No response from the server");
-      } else {
-        toast.error(`Error: ${error.message}`);
+      // Firebase Auth error
+      if (error.code && error.message) {
+        // Map known Firebase Auth error codes to user-friendly messages
+        let friendlyMsg = "Authentication failed. Please try again.";
+        switch (error.code) {
+          case "auth/invalid-credential":
+          case "auth/wrong-password":
+            friendlyMsg = "Invalid email or password. Please try again.";
+            break;
+          case "auth/user-not-found":
+            friendlyMsg = "No account found with this email.";
+            break;
+          case "auth/too-many-requests":
+            friendlyMsg = "Too many failed attempts. Please wait and try again later.";
+            break;
+          case "auth/network-request-failed":
+            friendlyMsg = "Network error. Please check your connection.";
+            break;
+          default:
+            friendlyMsg = error.message.replace(/^Firebase: Error \([^)]+\)\.\s*/, "");
+        }
+        toast.error(friendlyMsg);
+        return;
       }
+      // Axios error
+      if (error.response && error.response.data) {
+        toast.error(`API error: ${typeof error.response.data === 'string' ? error.response.data : JSON.stringify(error.response.data)}`);
+        return;
+      }
+      if (error.request) {
+        toast.error("No response from the server");
+        return;
+      }
+      // Unknown error
+      toast.error(`Error: ${error.message || "Something went wrong"}`);
     }
   }
 
@@ -119,13 +139,54 @@ function LoginPage() {
         }
       }
     } catch (error: any) {
-      if (error.response?.status === 409) {
-        toast.error(
-          "This email is already registered. Please sign in instead."
-        );
-      } else {
-        toast.error("Sign-in failed. Please try again.");
+      // Always dismiss loading toast if present
+      toast.dismiss();
+      // Firebase Auth errors (popup, network, etc.)
+      if (error.code) {
+        let msg = "Sign-in failed. Please try again.";
+        switch (error.code) {
+          case "auth/popup-closed-by-user":
+            msg = "Sign-in popup was closed. Please try again.";
+            break;
+          case "auth/cancelled-popup-request":
+            msg = "Sign-in popup was cancelled. Please try again.";
+            break;
+          case "auth/popup-blocked":
+            msg = "Popup was blocked by your browser. Please allow popups and try again.";
+            break;
+          case "auth/network-request-failed":
+            msg = "Network error. Please check your connection and try again.";
+            break;
+          case "auth/user-disabled":
+            msg = "This account has been disabled.";
+            break;
+          default:
+            msg = error.message.replace(/^Firebase: Error \([^)]+\)\.\s*/, "");
+        }
+        toast.error(msg);
+        return;
       }
+      // Axios/API errors
+      if (error.response) {
+        if (error.response.status === 409) {
+          toast.error("This email is already registered. Please sign in instead.");
+        } else if (error.response.status === 400) {
+          toast.error("Invalid request. Please try again.");
+        } else if (error.response.status === 500) {
+          toast.error("Server error. Please try again later.");
+        } else if (error.response.data && typeof error.response.data === 'string') {
+          toast.error(error.response.data);
+        } else {
+          toast.error("Sign-in failed. Please try again.");
+        }
+        return;
+      }
+      if (error.request) {
+        toast.error("No response from the server. Please check your connection.");
+        return;
+      }
+      // Unknown error
+      toast.error("Sign-in failed. Please try again.");
       console.error("Error during Google sign-in:", error);
     }
   };

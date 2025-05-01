@@ -1,5 +1,7 @@
 import * as React from "react";
-import { Header } from "./Header";
+import Skeleton from "react-loading-skeleton";
+import "react-loading-skeleton/dist/skeleton.css";
+import { Header } from "../common/Header";
 import { Post } from "./Post";
 import { Navigation } from "./Navigation";
 import { useRef, useState } from "react";
@@ -13,7 +15,7 @@ import { toast, Toaster } from "sonner";
 import axios from "axios";
 import { useEffect, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQuery, useQueryClient } from "@tanstack/react-query";
 import { QuestionPost } from "../questionFeed/questionPost";
 import VerifyForm from "../VerifyForm";
 import askQ from "../../assets/icon/askQ.svg";
@@ -37,25 +39,16 @@ const VideoCard: React.FC<VideoCardProps> = ({ videoImage, avatarImage }) => {
         />
       </div>
       <img
-        src={avatarImage}
+        src={avatarImage || profile}
         alt="Avatar"
-        className="w-10 h-10 rounded-full border  z-10 border-white -mt-6"
+        className="w-10 h-10 rounded-full object-cover  z-10  -mt-6"
       />
     </div>
   );
 };
 
-interface ProfileData {
-  name: string;
-  title: string;
-  bio: string;
-  avatar: string;
-  stats: {
-    followers: number;
-    posts: number;
-    questions: number;
-  };
-}
+
+
 
 export const SocialFeed: React.FC = () => {
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
@@ -75,10 +68,53 @@ export const SocialFeed: React.FC = () => {
   const id = location.state;
   const userId = localStorage.getItem("Id") || id;
 
+  // Fetch reels with useInfiniteQuery (top-level)
+  const {
+    data: reelsPages,
+    isLoading: isReelsLoading,
+    isFetching: isReelsFetching,
+    refetch: refetchReels
+  } = useInfiniteQuery<{ items: any[] }, Error>({
+    queryKey: ['reels', userId],
+    queryFn: async ({ pageParam = 1 }) => {
+      const response = await axios.get(
+        `https://128i1lirkh.execute-api.ap-south-1.amazonaws.com/dev/clinical/reels/${userId}?page=${pageParam}&limit=5`
+      );
+      console.log('Reels data fetched:', response.data.data.items.reelsToReturn);
+      return {
+        items: response.data.data.items.reelsToReturn || [],
+      };
+    },
+    getNextPageParam: (lastPage: { items: any[] }, pages: { items: any[] }[]) => {
+      // Add null check to prevent 'Cannot read properties of undefined (reading 'length')' error
+      if (!lastPage || !lastPage.items) return undefined;
+      return lastPage.items.length === 5 ? pages.length + 1 : undefined;
+    },
+    enabled: !!userId,
+    initialPageParam: 1,
+    staleTime: 0, // Always fetch fresh data
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
+    retry: 3,
+    retryDelay: 1000
+  });
+  
+  // Extract reels data for use in the component and effect hooks
+  const reelsData = React.useMemo(() => {
+    return (reelsPages?.pages as { items: any[] }[] | undefined)?.flatMap(page => page.items) || [];
+  }, [reelsPages]);
 
-  if(!userId){
+  if (!userId) {
     navigate("/")
   }
+  
+  // Effect to handle empty reels data - moved from render function to component level
+  useEffect(() => {
+    if (!isReelsLoading && !isReelsFetching && (!reelsData || reelsData.length === 0)) {
+      console.log('No reels found, triggering refetch');
+      refetchReels();
+    }
+  }, [isReelsLoading, isReelsFetching, reelsData, refetchReels]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -148,51 +184,14 @@ export const SocialFeed: React.FC = () => {
   };
 
   // Navigation items for desktop header
-  const videoData = [
-    {
-      videoImage:
-        "https://cdn.builder.io/api/v1/image/assets/TEMP/1f352924c9d23559e8c19e6d726091def0f7346d30feaddbf142d2c74bc2e05e?placeholderIfAbsent=true&apiKey=90dc9675c54b49f9aa0dc15eba780c08",
-      avatarImage:
-        "https://cdn.builder.io/api/v1/image/assets/TEMP/13d83c993760da19a222234c3cbcb356d551631f91a34653bf73ab3984455ff6?placeholderIfAbsent=true&apiKey=90dc9675c54b49f9aa0dc15eba780c08",
-    },
-    {
-      videoImage:
-        "https://cdn.builder.io/api/v1/image/assets/TEMP/1f352924c9d23559e8c19e6d726091def0f7346d30feaddbf142d2c74bc2e05e?placeholderIfAbsent=true&apiKey=90dc9675c54b49f9aa0dc15eba780c08",
-      avatarImage:
-        "https://cdn.builder.io/api/v1/image/assets/TEMP/13d83c993760da19a222234c3cbcb356d551631f91a34653bf73ab3984455ff6?placeholderIfAbsent=true&apiKey=90dc9675c54b49f9aa0dc15eba780c08",
-    },
-    {
-      videoImage:
-        "https://cdn.builder.io/api/v1/image/assets/TEMP/1f352924c9d23559e8c19e6d726091def0f7346d30feaddbf142d2c74bc2e05e?placeholderIfAbsent=true&apiKey=90dc9675c54b49f9aa0dc15eba780c08",
-      avatarImage:
-        "https://cdn.builder.io/api/v1/image/assets/TEMP/13d83c993760da19a222234c3cbcb356d551631f91a34653bf73ab3984455ff6?placeholderIfAbsent=true&apiKey=90dc9675c54b49f9aa0dc15eba780c08",
-    },
-    {
-      videoImage:
-        "https://cdn.builder.io/api/v1/image/assets/TEMP/1f352924c9d23559e8c19e6d726091def0f7346d30feaddbf142d2c74bc2e05e?placeholderIfAbsent=true&apiKey=90dc9675c54b49f9aa0dc15eba780c08",
-      avatarImage:
-        "https://cdn.builder.io/api/v1/image/assets/TEMP/13d83c993760da19a222234c3cbcb356d551631f91a34653bf73ab3984455ff6?placeholderIfAbsent=true&apiKey=90dc9675c54b49f9aa0dc15eba780c08",
-    },
-    {
-      videoImage:
-        "https://cdn.builder.io/api/v1/image/assets/TEMP/1f352924c9d23559e8c19e6d726091def0f7346d30feaddbf142d2c74bc2e05e?placeholderIfAbsent=true&apiKey=90dc9675c54b49f9aa0dc15eba780c08",
-      avatarImage:
-        "https://cdn.builder.io/api/v1/image/assets/TEMP/13d83c993760da19a222234c3cbcb356d551631f91a34653bf73ab3984455ff6?placeholderIfAbsent=true&apiKey=90dc9675c54b49f9aa0dc15eba780c08",
-    },
-  ];
+  // Video data state for Explore Videos
 
-  const [profileData] = useState<ProfileData>({
-    name: "Seelam Yamshidhar Goud",
-    title: "Ophthalmologist",
-    bio: "AIIMS Delhi'25 | Aspiring Medical Professional",
-    avatar:
-      "https://cdn.builder.io/api/v1/image/assets/TEMP/1d6a37aa68c806868e46fc0d99e42c21115610fa1b71c977a03eb08090c9e74c",
-    stats: {
-      followers: 546,
-      posts: 90,
-      questions: 5,
-    },
-  });
+
+
+
+
+
+
 
   const StatItem: React.FC<{
     value: number;
@@ -205,11 +204,11 @@ export const SocialFeed: React.FC = () => {
     </div>
   );
 
- 
+
 
   //BACKEND
 
- 
+
 
 
   const intid = parseInt(userId);
@@ -232,7 +231,7 @@ export const SocialFeed: React.FC = () => {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-    
+    isLoading,
   } = useInfiniteQuery<FeedPage>({
     initialPageParam: 1,
     queryKey: ["feed", userId],
@@ -251,6 +250,62 @@ export const SocialFeed: React.FC = () => {
     refetchOnWindowFocus: false, // Only refetch when explicitly needed
     refetchInterval: false, // Disable automatic refetching
   });
+
+  // Prefetch questions data
+  const queryClient = useQueryClient();
+  React.useEffect(() => {
+    // Prefetch first page of questions
+    queryClient.prefetchInfiniteQuery({
+      queryKey: ['questions', userId],
+      initialPageParam: 1,
+      queryFn: async ({ pageParam = 1 }) => {
+        const limit = 10;
+        const response = await axios.get(
+          `https://128i1lirkh.execute-api.ap-south-1.amazonaws.com/dev/questions/${userId}?page=${pageParam}&limit=${limit}`
+        );
+        if (response.data.status === 'success') {
+          const items = response.data.data.items.finalQuestions || [];
+          const hasMore = items.length === limit;
+          return {
+            items,
+            hasMore,
+            page: pageParam
+          };
+        }
+        throw new Error('Failed to fetch questions');
+      },
+      staleTime: 1000 * 60 * 5, // Match the questions page stale time
+    });
+
+    // Prefetch reels data for the reels page (using the same structure as reels-context.tsx)
+    queryClient.prefetchInfiniteQuery({
+      queryKey: ['reels', userId],
+      initialPageParam: 1,
+      queryFn: async ({ pageParam = 1 }) => {
+        const response = await axios.get(
+          `https://128i1lirkh.execute-api.ap-south-1.amazonaws.com/dev/clinical/reels/${userId}?page=${pageParam}&limit=5`
+        );
+        // No console log needed here
+
+        // Important: Return in the EXACT same format as used in reels-context.tsx
+        return {
+          data: {
+            items: {
+              reelsToReturn: response.data.data.items.reelsToReturn || []
+            }
+          }
+        };
+      },
+      staleTime: 0, // Always fetch fresh data
+    });
+    
+    // We don't need to prefetch page 2 for the social feed
+    
+    // Set the reels data to be fresh when navigating to the videos page
+    setTimeout(() => {
+      queryClient.invalidateQueries({ queryKey: ['reels', userId] });
+    }, 300);
+  }, [userId, queryClient]);
 
   // Get user details with React Query - optimized to reduce calls
   const { data: userQueryData } = useQuery({
@@ -274,7 +329,7 @@ export const SocialFeed: React.FC = () => {
       const allItems = queryData.pages.flatMap((page) => page.items || []);
       setFeedItems(allItems); // Remove the conditional update to ensure new items are always added
       console.log(allItems)
-     
+
     }
   }, [queryData]);
 
@@ -286,12 +341,23 @@ export const SocialFeed: React.FC = () => {
     }
   }, [userQueryData]);
 
+  // Create a ref for the observer outside the callback
+  const observerInstanceRef = useRef<IntersectionObserver | null>(null);
+  
   // Intersection Observer for infinite scroll
   const observerRef = useCallback(
     (node: HTMLDivElement) => {
+      // Clean up previous observer if it exists
+      if (observerInstanceRef.current) {
+        observerInstanceRef.current.disconnect();
+        observerInstanceRef.current = null;
+      }
+      
+      // If node is null, just return without setting up a new observer
       if (!node) return;
-
-      const observer = new IntersectionObserver(
+      
+      // Create a new observer
+      observerInstanceRef.current = new IntersectionObserver(
         (entries) => {
           const firstEntry = entries[0];
           if (firstEntry.isIntersecting && hasNextPage && !isFetchingNextPage) {
@@ -301,12 +367,21 @@ export const SocialFeed: React.FC = () => {
         },
         { threshold: 0.1 }
       );
-
-      observer.observe(node);
-      return () => observer.disconnect();
+      
+      // Start observing the node
+      observerInstanceRef.current.observe(node);
     },
     [hasNextPage, isFetchingNextPage, fetchNextPage]
   );
+  
+  // Clean up the observer on component unmount
+  useEffect(() => {
+    return () => {
+      if (observerInstanceRef.current) {
+        observerInstanceRef.current.disconnect();
+      }
+    };
+  }, []);
 
   const [suggestedConnections, setSuggestedConnections] = useState<{
     organization_matches: any[];
@@ -321,6 +396,7 @@ export const SocialFeed: React.FC = () => {
   });
 
   const [likedPosts, setLikedPosts] = useState<Set<number>>(new Set());
+  const [savedPosts, setSavedPosts] = useState<Set<number>>(new Set());
 
   // Initialize liked posts from feed data
   useEffect(() => {
@@ -340,8 +416,6 @@ export const SocialFeed: React.FC = () => {
       setSavedPosts(initialsavedPosts);
     }
   }, [feedItems]);
-
-  const [savedPosts, setSavedPosts] = useState<Set<number>>(new Set());
 
   async function handleLikeClick(postId: number) {
     // Optimistically update UI
@@ -441,25 +515,10 @@ export const SocialFeed: React.FC = () => {
   }
 
   // Add state for comments
-  const [comments, setComments] = useState<Record<number, Array<any>>>({});
+  // const [comments, setComments] = useState<Record<number, Array<any>>>({});
 
   // Add comment handler
   async function handleComment(postId: number, content: string) {
-    // Optimistically add comment
-
-    console.log(comments)
-
-    const tempComment = {
-      id: Date.now(),
-      comment: content,
-      user: { name: "You" },
-    };
-
-    setComments((prev) => ({
-      ...prev,
-      [postId]: [...(prev[postId] || []), tempComment],
-    }));
-
     try {
       const response = await axios.post(
         `https://128i1lirkh.execute-api.ap-south-1.amazonaws.com/dev/comment`,
@@ -469,21 +528,43 @@ export const SocialFeed: React.FC = () => {
           comment: content,
         }
       );
-      console.log(response);
 
-      if (!response.data.success) {
-        // Remove temp comment if failed
-        setComments((prev) => ({
-          ...prev,
-          [postId]: prev[postId].filter((c) => c.id !== tempComment.id),
-        }));
+      if (response.data.status === "success") {
+        toast.success("Comment added successfully");
+      } else {
+        // Only update UI on failure
+        setFeedItems(prevItems =>
+          prevItems.map(item => {
+            if (item.id === postId) {
+              return {
+                ...item,
+                comments: item.comments.filter(
+                  (c: { comment: string; user?: { name: string } }) =>
+                    !(c.comment === content && c.user?.name === userDetails.name)
+                )
+              };
+            }
+            return item;
+          })
+        );
         toast.error("Failed to add comment");
       }
     } catch (error) {
-      setComments((prev) => ({
-        ...prev,
-        [postId]: prev[postId].filter((c) => c.id !== tempComment.id),
-      }));
+      // Only update UI on failure
+      setFeedItems(prevItems =>
+        prevItems.map(item => {
+          if (item.id === postId) {
+            return {
+              ...item,
+              comments: item.comments.filter(
+                (c: { comment: string; user?: { name: string } }) =>
+                  !(c.comment === content && c.user?.name === userDetails.name)
+              )
+            };
+          }
+          return item;
+        })
+      );
       toast.error("Failed to add comment");
     }
   }
@@ -549,77 +630,112 @@ export const SocialFeed: React.FC = () => {
     }
   }
 
+  async function handleAddVideo() {
+    const loading = toast.loading("Checking verification status")
+    try {
+      const response = await axios.get(`https://128i1lirkh.execute-api.ap-south-1.amazonaws.com/dev/api/check-verification`, {
+        params: { id: userId }
+      })
+
+      if (response.data.verified) {
+        toast.dismiss(loading)
+        toast.success("Verified reirecting to add video")
+        popupOpen("Video")
+      } else {
+        console.log(response)
+        toast.dismiss(loading)
+        toast.warning("Please complete your verification")
+        setIsVerifyFormOpen(true)
+      }
+    } catch (e) {
+      toast.dismiss(loading)
+      toast.error("Something went wrong. please try again later")
+      console.error(e);
+    }
+  }
+
+  // Show skeletons when feedItems are empty and query is loading
+  const isInitialLoading = (!feedItems || feedItems.length === 0) && isLoading;
+
   return (
     <div className="flex bg-mainbg flex-col min-h-screen  mx-auto ">
       {/* Header */}
       <div
-        className={`bg-white  border-b sticky top-0 z-50 transition-transform duration-300 ease-in-out ${
-          visible ? "translate-y-0" : "-translate-y-full"
-        } md:translate-y-0`}
+        className={`bg-white  border-b sticky top-0 z-50 transition-transform duration-300 ease-in-out ${visible ? "translate-y-0" : "-translate-y-full"
+          } md:translate-y-0`}
       >
-        <Header
-          onNotification={() => console.log("Notification clicked")}
-          onMessage={() => console.log("Message clicked")}
-          onProfile={() => console.log("Profile clicked")}
-          onSearch={() => console.log("Profile clicked")}
-          profile = {userDetails?.profile_picture || profile }
-          user = {userDetails.name}
-          userRole = {`${userDetails?.department} | ${userDetails.organisation_name}`}
-          userLocation= {userDetails?.city}
-        />
+        <Header />
       </div>
 
       {/* Main Content Area */}
-      <div className="flex flex-1 lg:px-4  max-w-7xl mx-auto w-full  pt-4">
+      <div className="flex flex-1 lg:px-4  max-w-7xl mx-auto w-full gap-3  pt-4">
         {/* Left Sidebar */}
         <div className="hidden lg:block w-[27%] xl:w-[23%] flex-shrink-0 font-fontsm">
-          <div className="  top-[calc(theme(spacing.24)+1px)] space-y-6">
-            {/* Profile Card */}
-            <div className="bg-white  rounded-2xl p-6 shadow-sm">
-              <div className="flex flex-col items-center">
-                <img
-                  src={userDetails.profile_picture || profile}
-                  alt={userDetails.name}
-                  className=" lg:w-16 xl:w-20 xl:h-20 rounded-full object-cover mb-3"
-                />
-                <h2 className="text-sm font-semibold text-gray-900 mb-0.5">
-                  <span className="text-fillc font-semibold bg-fillc bg-opacity-30 px-2 mr-1 rounded-lg">
-                    Dr.
-                  </span>
-                  {userDetails.name}
-                </h2>
-                <p className="text-xs text-gray-600 mb-1">
-                  {userDetails?.department}
-                </p>
-                <p className="text-xs text-gray-500 text-center mb-5">
-                  {`${userDetails?.specialisation_field_of_study} | ${userDetails?.organisation_name}`}
-                </p>
-
-                <div className="grid grid-cols-3 w-full gap-4 text-center text-sm  border-t pt-4">
-                  <StatItem
-                    value={userDetails._count?.followers}
-                    label="Followers"
-                  />
-                  <StatItem
-                    value={userDetails._count?.posts}
-                    label="Posts"
-                    className="border-x px-4"
-                  />
-                  <StatItem
-                    value={userDetails._count?.questions}
-                    label="Questions"
-                  />
+          <div className="  top-[calc(theme(spacing.24)+1px)] space-y-3">
+            {/* Profile Card Skeleton */}
+            {isInitialLoading ? (
+              <div className="bg-white rounded-2xl p-6 shadow-sm">
+                <div className="flex flex-col items-center">
+                  <Skeleton circle height={80} width={80} className="mb-3" />
+                  <Skeleton height={18} width={120} className="mb-1" />
+                  <Skeleton height={14} width={80} className="mb-1" />
+                  <Skeleton height={14} width={140} className="mb-5" />
+                  <div className="grid grid-cols-3 w-full gap-4 text-center text-sm border-t pt-4">
+                    <Skeleton height={16} width={40} />
+                    <Skeleton height={16} width={40} />
+                    <Skeleton height={16} width={40} />
+                  </div>
                 </div>
               </div>
-            </div>
-            <div className="w-full">
-              <Slider />
-            </div>
+            ) : (
+              <>
+                <div className="bg-white  rounded-2xl p-6 shadow-sm">
+                  <div className="flex flex-col items-center">
+                    <img
+                      src={userDetails.profile_picture || profile}
+                      alt={userDetails.name}
+                      className=" lg:w-16 xl:w-20 xl:h-20 rounded-full object-cover mb-3"
+                    />
+                    <h2 className="text-sm font-semibold text-gray-900 mb-0.5">
+                      <span className="text-fillc font-semibold bg-fillc bg-opacity-30 px-2 mr-1 rounded-lg">
+                        Dr.
+                      </span>
+                      {userDetails.name}
+                    </h2>
+                    <p className="text-xs text-gray-600 mb-1">
+                      {userDetails?.department}
+                    </p>
+                    <p className="text-xs text-gray-500 text-center mb-5">
+                      {`${userDetails?.specialisation_field_of_study} | ${userDetails?.organisation_name}`}
+                    </p>
+
+                    <div className="grid grid-cols-3 w-full gap-4 text-center text-sm  border-t pt-4">
+                      <StatItem
+                        value={userDetails._count?.followers}
+                        label="Followers"
+                      />
+                      <StatItem
+                        value={userDetails._count?.posts}
+                        label="Posts"
+                        className="border-x px-4"
+                      />
+                      <StatItem
+                        value={userDetails._count?.questions}
+                        label="Questions"
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="w-full">
+                  <Slider />
+                </div>
+              </>
+            )}
           </div>
         </div>
 
         {/* Main Feed */}
-        <div className="flex-1 lg:max-w-[50%]  lg:px-4  mx-auto  w-full ">
+        <div className="flex-1 lg:max-w-[50%]     w-full ">
           {/* Stories Section */}
           <div className="bg-white rounded-2xl  mb-2  relative">
             {/* Left Arrow */}
@@ -643,12 +759,12 @@ export const SocialFeed: React.FC = () => {
               }}
               onScroll={handleStoriesScroll}
             >
-              <Stories 
-                stories={[]} 
+              <Stories
+                stories={[]}
                 usersProfiles={suggestedConnections.organization_matches.map(user => ({
                   userId: user.id,
                   userName: user.name,
-                  profile : userDetails.profile_picture || profile,
+                  profile: userDetails.profile_picture || profile,
                   userAvatar: user.profile_picture || profile
                 }))}
                 profile={userDetails.profile_picture || profile}
@@ -669,52 +785,76 @@ export const SocialFeed: React.FC = () => {
 
           {/*Posting Section */}
 
-          <div className=" bg-white font-fontsm flex justify-around py-1  w-full rounded-xl">
-            <button
-              className="flex items-center hover:bg-gray-50 rounded-xl  px-2 py-3"
-              onClick={handleAskQuestion}
-            >
-              <img src={askQ} className="lg::w-5 lg:h-5" alt="" />
-              <p className="text-xs pl-1 font-medium  text-gray-600">Ask Question </p>
-            </button>
+          {/* Posting Section Skeleton */}
+          {isInitialLoading ? (
+            <div className="bg-white font-fontsm flex justify-around py-2 w-full rounded-xl mb-3">
+              <Skeleton height={40} width={100} className="mx-2 rounded-xl" />
+              <Skeleton height={40} width={100} className="mx-2 rounded-xl" />
+              <Skeleton height={40} width={100} className="mx-2 rounded-xl" />
+            </div>
+          ) : (
+            <div className=" bg-white font-fontsm flex justify-around py-1  w-full rounded-xl">
+              <button
+                className="flex items-center hover:bg-gray-50 rounded-xl  px-2 py-3"
+                onClick={handleAskQuestion}
+              >
+                <img src={askQ} className="lg::w-5 lg:h-5" alt="" />
+                <p className="text-xs pl-1 font-medium  text-gray-600">Ask Question </p>
+              </button>
 
-            <button
-              className="flex items-center hover:bg-gray-50 rounded-xl px-2 py-3"
-              onClick={handleAddPost}
-            >
-              <img src={addp} className="lg:w-5 lg:h-5" alt="" />
-              <p className="text-xs pl-1 font-medium text-gray-600">Add Post</p>
-            </button>
+              <button
+                className="flex items-center hover:bg-gray-50 rounded-xl px-2 py-3"
+                onClick={handleAddPost}
+              >
+                <img src={addp} className="lg:w-5 lg:h-5" alt="" />
+                <p className="text-xs pl-1 font-medium text-gray-600">Add Post</p>
+              </button>
 
-            <button
-              className="flex items-center px-2 py-3"
-              onClick={() => popupOpen("Video")}
-            >
-              <img src={addr} className="lg:w-5 lg:h-5" alt="" />
-              <p className="text-xs font-medium text-gray-600 pl-1">Add Video</p>
-            </button>
+              <button
+                className="flex items-center hover:bg-gray-50 rounded-xl px-2 py-3"
+                onClick={handleAddVideo}
+              >
+                <img src={addr} className="lg:w-5 lg:h-5" alt="" />
+                <p className="text-xs font-medium text-gray-600 pl-1">Add Video</p>
+              </button>
 
-            <PostPopup
-              isOpen={isOpen}
-              onTypeChange={setPostType1}
-              onClose={() => setIsOpen(false)}
-              userAvatar={profileData.avatar}
-              postType1={postType1}
-            />
-          </div>
+              <PostPopup
+                isOpen={isOpen}
+                onTypeChange={setPostType1}
+                onClose={() => setIsOpen(false)}
+                userAvatar={userDetails?.profile_picture}
+                postType1={postType1}
+              />
+            </div>
+          )}
 
           <Toaster />
 
           <div className=" lg:space-y-4 mb-16 lg:mb-1">
-            {feedItems?.length > 0 ? (
-              <div className=" space-y-3 xl:space-y-4">
+            {/* Feed Skeletons or Actual Feed */}
+            {isInitialLoading ? (
+              <div className="space-y-3 xl:space-y-3">
+                {[1, 2, 3].map((n) => (
+                  <div className="bg-white rounded-xl p-4" key={n}>
+                    <div className="flex items-center gap-3 mb-2">
+                      <Skeleton circle height={36} width={36} />
+                      <Skeleton height={16} width={120} />
+                    </div>
+                    <Skeleton height={20} width={`60%`} className="mb-2" />
+                    <Skeleton height={16} width={`90%`} count={2} />
+                  </div>
+                ))}
+              </div>
+            ) : feedItems?.length > 0 ? (
+              <div className=" space-y-3 xl:space-y-3">
                 {/* First 3 posts */}
                 {feedItems.slice(0, 3).map((item: any, index: number) => {
                   return item.posted_at ? (
                     <div key={`post-${item.id}-${index}`}>
                       <Post
                         id={item.id}
-                        avatar={item.user?.profile_picture}
+                        userId={item?.userId}
+                        avatar={item.User?.profile_picture}
                         name={item.User.name}
                         bio={`${item.User.department} | ${item.User.specialisation_field_of_study} | ${item.User.organisation_name}`}
                         timeAgo={new Date(item.posted_at).toLocaleDateString(
@@ -748,11 +888,24 @@ export const SocialFeed: React.FC = () => {
                       />
                     </div>
                   ) : (
-                    <div key={`question-${item.id}-${index}`}>
+                    <div onClick={() => {
+                      const questionData = {
+                        id: item.id,
+                        User: item.User,
+                        asked_at: item.asked_at,
+                        question: item.question,
+                        question_description: item.question_description,
+                        question_image_links: item.question_image_links,
+                        answers: item.answers
+                      };
+
+                      navigate(`/question/questionpage/${item.id}`, { state: { questionData } })
+                    }} key={`question-${item.id}-${index}`}>
                       <QuestionPost
                         postId={item.id}
                         isUrgent={true}
-                        avatar={item.user?.profile_picture}
+                        userId={item.userId}
+                        avatar={item.User?.profile_picture}
                         name={item.User.name}
                         bio={`${item.User.department} | ${item.User.organisation_name}`}
                         timeAgo={new Date(item.asked_at).toLocaleDateString(
@@ -766,12 +919,12 @@ export const SocialFeed: React.FC = () => {
                         content={item.question_description}
                         images={item.question_image_links}
                         agrees={12}
-                        date={"22 dec 2024"}
-                        shares={37}
+                        date={item?.asked_at}
+                        shares={0}
                         onShare={() => console.log("Share clicked")}
                         onReply={() => console.log("Repost clicked")}
                         answerImg={userDetails?.profile_picture}
-                        answers={2}
+                        answers={item?._count?.answers}
                         disagrees={4}
                       />
                     </div>
@@ -795,7 +948,8 @@ export const SocialFeed: React.FC = () => {
                     >
                       <Post
                         id={item.id}
-                        avatar={item.user?.profile_picture}
+                        userId={item?.userId}
+                        avatar={item.User?.profile_picture}
                         name={item.User.name}
                         bio={`${item.User.department} | ${item.User.organisation_name}`}
                         timeAgo={new Date(item.posted_at).toLocaleDateString(
@@ -832,11 +986,26 @@ export const SocialFeed: React.FC = () => {
                     <div
                       key={`question-${item.id}-${index + 3}`}
                       ref={isLastItem ? observerRef : null}
+
+                      onClick={() => {
+                        const questionData = {
+                          id: item.id,
+                          User: item.User,
+                          asked_at: item.asked_at,
+                          question: item.question,
+                          question_description: item.question_description,
+                          question_image_links: item.question_image_links,
+                          answers: item.answers
+                        };
+
+                        navigate(`/question/questionpage/${item.id}`, { state: { questionData } })
+                      }}
                     >
                       <QuestionPost
                         postId={item.id}
                         isUrgent={true}
-                        avatar={item.user?.profile_picture}
+                        userId={item?.userId}
+                        avatar={item.User?.profile_picture}
                         name={item.User.name}
                         bio={`${item.User.department} | ${item.User.organisation_name}`}
                         timeAgo={new Date(item.asked_at).toLocaleDateString(
@@ -850,12 +1019,12 @@ export const SocialFeed: React.FC = () => {
                         content={item.question_description}
                         images={item.question_image_links}
                         agrees={12}
-                        date={"22 dec 2024"}
-                        shares={37}
+                        date={item?.asked_at}
+                        shares={0}
                         onShare={() => console.log("Share clicked")}
                         onReply={() => console.log("Repost clicked")}
                         answerImg={userDetails?.profile_picture}
-                        answers={2}
+                        answers={item?._count?.answers}
                         disagrees={4}
                       />
                     </div>
@@ -935,13 +1104,37 @@ export const SocialFeed: React.FC = () => {
                   scrollbarWidth: "none",
                 }}
               >
-                {videoData.map((video, index) => (
-                  <VideoCard
-                    key={index}
-                    videoImage={video.videoImage}
-                    avatarImage={video.avatarImage}
-                  />
-                ))}
+                {(() => {
+                  // Use the memoized reels data from the component level
+                  // Show loading skeletons when loading or fetching
+                  if (isReelsLoading || isReelsFetching) {
+                    return Array.from({ length: 5 }).map((_, idx) => (
+                      <div key={idx} className="flex flex-col items-center animate-pulse">
+                        <div className="w-16 h-28 xl:w-20 xl:h-36 rounded-lg bg-gray-200 mb-2" />
+                        <div className="w-10 h-10 rounded-full bg-gray-200" />
+                      </div>
+                    ));
+                  }
+                  
+                  // If we have reels data, show it
+                  if (reelsData && reelsData.length > 0) {
+                    return reelsData.map((reel: any, index: number) => (
+                      <VideoCard
+                        key={index}
+                        videoImage={reel.reelThumbnail || 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="350"><rect width="100%" height="100%" fill="black"/></svg>'}
+                        avatarImage={reel.user?.profile_picture || profile}
+                      />
+                    ));
+                  }
+                  
+                  // Show loading skeletons as fallback while we refetch
+                  return Array.from({ length: 5 }).map((_, idx) => (
+                    <div key={`fallback-${idx}`} className="flex flex-col items-center animate-pulse">
+                      <div className="w-16 h-28 xl:w-20 xl:h-36 rounded-lg bg-gray-200 mb-2" />
+                      <div className="w-10 h-10 rounded-full bg-gray-200" />
+                    </div>
+                  ));
+                })()}
               </div>
             </div>
           </div>
@@ -954,9 +1147,8 @@ export const SocialFeed: React.FC = () => {
 
         {/* Mobile Navigation */}
         <div
-          className={`fixed lg:hidden bottom-0 left-0 z-40 w-full bg-white shadow-md p-8 transition-transform duration-300 ease-in-out ${
-            visible2 ? "translate-y-0" : "translate-y-full"
-          } md:translate-y-0`}
+          className={`fixed lg:hidden bottom-0 left-0 z-40 w-full bg-white shadow-md p-8 transition-transform duration-300 ease-in-out ${visible2 ? "translate-y-0" : "translate-y-full"
+            } md:translate-y-0`}
         >
           <Navigation />
         </div>

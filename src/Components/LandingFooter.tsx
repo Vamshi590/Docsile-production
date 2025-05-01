@@ -18,7 +18,7 @@ function LandingFooter() {
         </Link>
       </div>
 
-      <div className="flex flex-col lg:flex-row items-center justify-center space-y-3 lg:space-x-6 ">
+      <div className="flex flex-col lg:flex-row items-center justify-center gap-y-3 lg:gap-y-0 gap-x-0 lg:gap-x-6">
         <Link className="text-white text-sm font-mainfont" to={"/"}>About Us</Link>
 
         <Link className="text-white text-sm font-mainfont" to={"/"}>Contact</Link>
@@ -32,7 +32,6 @@ function LandingFooter() {
 
       <div className="flex flex-row items-center justify-center">
         <p className="text-sm text-white font-mainfont ">Copyright © 2025 Docsile</p>
-
       </div>
     </div>
   );

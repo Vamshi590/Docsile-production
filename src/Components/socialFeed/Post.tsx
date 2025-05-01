@@ -16,13 +16,14 @@ import sharev from "../../assets/icon/sharev.svg";
 import hide from "../../assets/icon/hide.svg";
 import notinterested from "../../assets/icon/notintrested.svg";
 import profile from "../../assets/icon/profile.svg"
+import { useNavigate } from "react-router-dom";
 
 interface Author {
   name: string;
   profile_picture?: string;
   department?: string;
   organisation_name ?: string;
-  timeAgo?: string; // Made timeAgo required
+  timeAgo?: string; 
 }
 
 // Define the Comment interface
@@ -35,14 +36,17 @@ interface Comment {
   replies?: Comment[];
 }
 
-const CommentInput = ({ onAddComment , postId, onComment , profile_picture }: { postId : number, profile_picture : string, onComment: (postId: number, content: string) => void; onAddComment: (content: string) => void } ) => {
+const CommentInput = ({ postId, onComment, profile_picture }: { 
+  postId: number, 
+  profile_picture: string, 
+  onComment: (postId: number, content: string) => void 
+}) => {
   const [comment, setComment] = useState('');
 
   const handleSubmit = () => {
     if (comment.trim()) {
-
-      onAddComment(comment);
-      onComment(postId, comment)
+      // Only call onComment which will handle both UI update and API call
+      onComment(postId, comment);
       setComment('');
     }
   };
@@ -200,6 +204,7 @@ export const Post: React.FC<PostProps> = ({
   comments,
   shares,
   reposts,
+  userId,
   liked,
   onLike,
   handlesavepost,
@@ -222,78 +227,22 @@ export const Post: React.FC<PostProps> = ({
   const [isMoreOpen, setIsMoreOpen] = useState(false);
   const moreMenuRef = useRef<HTMLDivElement>(null);
   const moreButtonRef = useRef<HTMLButtonElement>(null);
-  const [postComments, setPostComments] = useState<Comment[]>([
-    {
-      id: "1",
-      user: {
-        name: "Nampally Sriram",
-        profile_picture: "https://cdn.builder.io/api/v1/image/assets/TEMP/13d83c993760da19a222234c3cbcb356d551631f91a34653bf73ab3984455ff6",
-        department: "Ophthalmologist | AIIMS DM-(F) | Leading Medical Professional",
-        timeAgo: "3 days ago",
+  const [localComments, setLocalComments] = useState<Comment[]>([]);
+  const [optimisticComments, setOptimisticComments] = useState<Comment[]>([]);
 
-      },
-      comment: "Congrats @Vamshidhar_seelam",
-      timeAgo: "3 days ago",
-      likes: 37,
-      replies: [], // Correctly typed as Comment[]
-    },
-    {
-      id: "2",
-      user: {
-        name: "Nampally Sriram",
-        profile_picture: "https://cdn.builder.io/api/v1/image/assets/TEMP/13d83c993760da19a222234c3cbcb356d551631f91a34653bf73ab3984455ff6",
-        department: "Ophthalmologist | AIIMS DM-(F) | Leading Medical Professional",
-        timeAgo: "3 days ago",
-      },
-      comment: "Congrats @Vamshidhar_seelam",
-      timeAgo: "3 days ago",
-      likes: 32,
-      replies: [
-        {
-          id: "2-1",
-          user: {
-            name: "Nampally Sriram",
-            profile_picture: "https://cdn.builder.io/api/v1/image/assets/TEMP/13d83c993760da19a222234c3cbcb356d551631f91a34653bf73ab3984455ff6",
-            department: "Ophthalmologist | AIIMS DM-(F) | Leading Medical Professional",
-            timeAgo: "3 days ago",
-          },
-          comment: "Congrats @Vamshidhar_seelam",
-          timeAgo: "3 days ago",
-          likes: 15,
-          replies: [], // Correctly typed as Comment[]
-        },
-      ],
-    },
-  ]);
-
-  const handleAddComment = (commentContent: string) => {
-    const newComment: Comment = {
-      id: String(Date.now()),
-      user: {
-        name: "Current User", // Replace with actual user data
-        profile_picture: "https://cdn.builder.io/api/v1/image/assets/TEMP/13d83c993760da19a222234c3cbcb356d551631f91a34653bf73ab3984455ff6",
-        department: "User Bio", // Replace with actual user bio
-        timeAgo: "Just now",
-      },
-      comment: commentContent,
-      timeAgo: "Just now",
-      likes: 0,
-      replies: [],
-    };
-
-    console.log(postComments[0].id)
-
-    setPostComments(prevComments => [newComment, ...prevComments]);
- 
-  };
+  useEffect(() => {
+    if (Array.isArray(readcomments)) {
+      setLocalComments(readcomments);
+    }
+  }, [readcomments]);
 
   const handleAddReply = (parentId: string, replyContent: string) => {
     const newReply: Comment = {
       id: String(Date.now()),
       user: {
-        name: "Current User", // Replace with actual user data
+        name: "Current User", 
         profile_picture: "https://cdn.builder.io/api/v1/image/assets/TEMP/13d83c993760da19a222234c3cbcb356d551631f91a34653bf73ab3984455ff6",
-        department: "User Bio", // Replace with actual user bio,
+        department: "User Bio", 
         timeAgo: "Just now",
       },
       comment: replyContent,
@@ -302,7 +251,7 @@ export const Post: React.FC<PostProps> = ({
       replies: [],
     };
 
-    setPostComments(prevComments => {
+    setLocalComments(prevComments => {
       return prevComments.map(comment => {
         if (comment.id === parentId) {
           return {
@@ -310,7 +259,6 @@ export const Post: React.FC<PostProps> = ({
             replies: [newReply, ...(comment.replies || [])]
           };
         }
-        // Check for nested replies
         if (comment.replies && comment.replies.length > 0) {
           return {
             ...comment,
@@ -388,7 +336,7 @@ export const Post: React.FC<PostProps> = ({
   };
 
   const toggleMore = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent event from bubbling up
+    e.stopPropagation(); 
     setIsMoreOpen(!isMoreOpen);
   };
 
@@ -415,8 +363,38 @@ export const Post: React.FC<PostProps> = ({
     }
   }
 
+  const navigate = useNavigate();
 
+  function handleNavigateUser(usid : number){
+    navigate(`/connect/profile/${usid}`)
+  }
 
+  const handleLocalComment = (postId: number, content: string) => {
+    // Create an optimistic comment
+    const tempComment: Comment = {
+      id: `temp-${Date.now()}`,
+      user: {
+        name: currentUser?.name || "You",
+        profile_picture: currentUser?.profile_picture,
+        department: currentUser?.department,
+        organisation_name: currentUser?.organisation_name,
+        timeAgo: "Just now"
+      },
+      comment: content,
+      timeAgo: "Just now",
+      likes: 0,
+      replies: []
+    };
+
+    // Add to optimistic comments
+    setOptimisticComments(prev => [tempComment, ...prev]);
+    
+    // Call parent handler
+    onComment(postId, content);
+  };
+
+  // Combine real and optimistic comments for display
+  const displayComments = [...optimisticComments, ...localComments];
 
   return (
     <>
@@ -424,9 +402,9 @@ export const Post: React.FC<PostProps> = ({
         <article className="flex flex-col p-4 bg-white rounded-xl border border-gray-200 mt-2  font-fontsm">
           {/* Existing header section */}
           <div className="flex justify-between items-start relative">
-            <div className="flex gap-3 items-center" onClick={() => setIsExpanded(true)}>
+            <div className="flex gap-3 items-center cursor-pointer" onClick={() => handleNavigateUser(userId)}>
               <div>
-                <img src={avatar || profile } alt={`${name}'s profile`} className="w-12 h-12 rounded-full" />
+                <img src={avatar || profile } alt={`${name}'s profile`} className="w-12 h-12 rounded-full object-cover " />
               </div>
               <div className="pt-1">
                 <h3 className="text-md font-semibold text-neutral-600 ">{name}</h3>
@@ -619,13 +597,17 @@ export const Post: React.FC<PostProps> = ({
           
           {/* Comments section */}
           {showComments && (
-            <div className="mt-4 border-t border-gray-200 pt-4">
-              <CommentInput profile_picture= {currentUser.profile_picture} onAddComment={handleAddComment} postId={id} onComment={onComment} />
-              <div className="mt-4 space-y-4">
-                {readcomments?.map((comment) => (
-                  <Comment 
-                    key={comment.id} 
-                    comment={comment} 
+            <div className="mt-4">
+              <CommentInput
+                postId={id}
+                profile_picture={currentUser?.profile_picture || ""}
+                onComment={handleLocalComment}
+              />
+              <div className="space-y-4">
+                {displayComments.map((comment) => (
+                  <Comment
+                    key={comment.id}
+                    comment={comment}
                     onAddReply={handleAddReply}
                   />
                 ))}

@@ -1,6 +1,7 @@
 import * as React from "react";
 import { StoriesPopup } from "./StoriesPopup";
 import userconnect from "../../assets/icon/userconnect.svg"
+import { useNavigate } from "react-router-dom";
 
 type MediaType = "image" | "video";
 
@@ -64,28 +65,7 @@ export const Stories: React.FC<StoriesProps> = ({ stories , usersProfiles , prof
     avatar: "https://cdn.builder.io/api/v1/image/assets/TEMP/1d6a37aa68c806868e46fc0d99e42c21115610fa1b71c977a03eb08090c9e74c",
   });
 
-  const [myStory, setMyStory] = React.useState<MyStoryData | null>({
-    id: "my-story-1",
-    userId: profileData.userId,
-    userName: profileData.name,
-    userAvatar: profileData.avatar,
-    uploadTime: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
-    isViewed: false,
-    media: [
-      {
-        id: "my-media-1",
-        type: "image",
-        url: "https://images.unsplash.com/photo-1518791841217-8f162f1e1131",
-        duration: 5,
-      },
-      {
-        id: "my-media-2",
-        type: "image",
-        url: "https://images.unsplash.com/photo-1494790108377-be9c29b29330",
-        duration: 5,
-      },
-    ],
-  });
+  const [myStory, setMyStory] = React.useState<MyStoryData | null>();
 
   // Compute hasMyStory based on myStory existence and expiration
   const hasMyStory = React.useMemo(() => {
@@ -191,6 +171,13 @@ export const Stories: React.FC<StoriesProps> = ({ stories , usersProfiles , prof
   //   setMyStory(newStory);
   // };
   
+  const navigate = useNavigate();
+
+  function navigateUser (id : number){
+    navigate(`/connect/profile/${id}`)
+  }
+
+
   return (
     <>
       <div className="bg-white rounded-xl py-4 ">
@@ -251,6 +238,7 @@ export const Stories: React.FC<StoriesProps> = ({ stories , usersProfiles , prof
 
           {usersWithoutStories.slice(0, placeholdersToShow).map((profile) => (
             <div 
+            onClick={() => navigateUser(parseInt(profile.userId))}
               key={profile.userId}
               className="flex-shrink-0 cursor-pointer transition-transform duration-200 hover:scale-105 relative"
               

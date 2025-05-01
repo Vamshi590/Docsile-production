@@ -3,6 +3,7 @@ import save1 from "../../assets/icon/save1.svg";
 import share from "../../assets/icon/share.svg";
 import comment from "../../assets/icon/comment.svg";
 import more1 from "../../assets/icon/more1.svg";
+import profile from "../../assets/icon/profile.svg"
 
 interface QuestionCardProps {
   userImage: string;
@@ -45,7 +46,6 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
 
 
 
-
   return (
     <div className="bg-white rounded-lg p-3 w-full h-[500px] overflow-hidden">
       <article className="flex flex-col justify-between p-4 bg-white rounded-xl border border-gray-200 h-full font-fontsm">
@@ -55,9 +55,9 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
             <div className="flex gap-3 items-center">
               <div>
                 <img 
-                  src={userImage} 
+                  src={userImage || profile} 
                   alt={`${userName}'s profile`} 
-                  className="w-[46px] h-[46px] rounded-full shrink-0" 
+                  className="w-[46px] h-[46px] rounded-full shrink-0 object-cover " 
                 />
               </div>
               <div className="pt-1">

@@ -112,7 +112,7 @@ function Category() {
                 <img src={logo} alt="" />
               </div>
 
-              <h2 className="lg:flex text-2xl sm:text-3xl lg:text-4xl  mt-20 lg:mt-0  font-medium text-gray-800">
+              <h2 className="lg:flex text-2xl sm:text-3xl xl:text-4xl  mt-20 lg:mt-0  font-medium text-gray-800">
                 What describes you?
               </h2>
 

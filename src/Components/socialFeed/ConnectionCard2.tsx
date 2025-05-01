@@ -1,6 +1,9 @@
 import React, { useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import profile from "../../assets/icon/profile.svg";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import { toast } from "sonner";
 
 interface Person {
   id: number;
@@ -81,6 +84,33 @@ const ConnectionCard2: React.FC<ConnectionCard2Props> = ({ connections }) => {
       });
     }
   };
+  const navigate = useNavigate();
+  const [followingStatus, setFollowingStatus] = useState<{ [userId: string]: boolean }>({});
+  const userid = localStorage.getItem("Id");
+  
+  const handlefollow = async (followingId: string) => {
+    // Optimistically update UI
+    setFollowingStatus((prev) => ({ ...prev, [followingId]: true }));
+    try {
+      const response = await axios.post(
+        `https://128i1lirkh.execute-api.ap-south-1.amazonaws.com/dev/follow/${userid}/${followingId}`
+      );
+
+      const invalidateCache = await axios.post(
+        `https://128i1lirkh.execute-api.ap-south-1.amazonaws.com/dev/connections/${userid}/invalidate-cache`
+      );
+
+      console.log("Invalidate cache response:", invalidateCache);
+
+      if (response) {
+        toast.success("Successfully sent the request");
+      }
+    } catch (error) {
+      toast.error("Failed to follow user");
+      setFollowingStatus((prev) => ({ ...prev, [followingId]: false })); // revert if failed
+      console.error(error);
+    }
+  }
 
   return (
     <div className="px-4 py-3 bg-white border border-gray-100 rounded-xl mb-4 font-fontsm ">
@@ -111,7 +141,8 @@ const ConnectionCard2: React.FC<ConnectionCard2Props> = ({ connections }) => {
           {connections.slice(0, showAll ? undefined : 5).map((person) => (
             <div
               key={person.id}
-              className="relative min-w-[150px] flex-shrink-0 bg-white  border border-gray-400 rounded-2xl p-2"
+              onClick={() => { navigate(`/connect/profile/${person.id}`) }}
+              className="relative min-w-[150px] flex-shrink-0 bg-white  border border-gray-400 rounded-2xl p-2 cursor-pointer"
             >
               <button className="absolute right-1 top-1 bg-white rounded-full p-1 hover:bg-gray-100 transition-colors">
                 <X className="w-3 h-3 text-gray-400" />
@@ -137,9 +168,18 @@ const ConnectionCard2: React.FC<ConnectionCard2Props> = ({ connections }) => {
                     </div>
                   </div>
                 )}
-                <button className=" absolute bottom-5 py-1.5 px-3 text-xs text-white bg-maincl rounded-3xl transition-colors mt-2">
-                  Follow
-                </button>
+                <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (!followingStatus[person.id]) handlefollow(person.id.toString());
+                }}
+                disabled={!!followingStatus[person.id]}
+                className={` absolute bottom-5 px-4 py-1 text-xs rounded-xl transition-colors ${followingStatus[person.id]
+                  ? "text-black bg-white border border-main"
+                  : "text-white bg-maincl hover:bg-opacity-90"}`}
+              >
+                {followingStatus[person.id] ? "Request sent" : "Follow"}
+              </button>
               </div>
             </div>
           ))}

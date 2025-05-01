@@ -54,6 +54,51 @@ const PostPopup: React.FC<PostPopupProps> = ({
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [thumbnail, setThumbnail] = useState<string | null>(null);
   const [videothumbnail, setVideoThumbnail] = useState<string | null>(null);
+const [videoThumbnailFile, setVideoThumbnailFile] = useState<File | null>(null);
+const [isGeneratingThumbnail, setIsGeneratingThumbnail] = useState(false);
+
+// Helper: Generate thumbnail from video file
+const generateVideoThumbnail = async (videoFile: File): Promise<{ url: string, file: File }> => {
+  return new Promise((resolve, reject) => {
+    const video = document.createElement('video');
+    video.src = URL.createObjectURL(videoFile);
+    video.crossOrigin = 'anonymous';
+    video.muted = true;
+    video.playsInline = true;
+
+    // Wait for metadata to load
+    video.addEventListener('loadedmetadata', () => {
+      // Seek to 0.1s for a better first frame (some videos have black at 0)
+      video.currentTime = Math.min(0.1, video.duration || 0.1);
+    });
+
+    // When seeked, draw the frame
+    video.addEventListener('seeked', () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        reject(new Error('Could not get canvas context'));
+        return;
+      }
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      canvas.toBlob((blob) => {
+        if (!blob) {
+          reject(new Error('Thumbnail generation failed'));
+          return;
+        }
+        const thumbUrl = URL.createObjectURL(blob);
+        const thumbFile = new File([blob], 'thumbnail.jpg', { type: 'image/jpeg' });
+        resolve({ url: thumbUrl, file: thumbFile });
+      }, 'image/jpeg', 0.92);
+    });
+
+    video.addEventListener('error', () => {
+      reject(new Error('Failed to load video for thumbnail'));
+    });
+  });
+};
   const [showUpload, setShowUpload] = useState(true);
   const startXRef = useRef<number | null>(null);
   const currentTranslate = useRef(0);
@@ -61,6 +106,30 @@ const PostPopup: React.FC<PostPopupProps> = ({
   const videoRef = useRef<HTMLVideoElement>(null);
 
   // const [localPostType, setLocalPostType] = useState(postType);
+
+  // Always generate a thumbnail when a new video is selected
+  useEffect(() => {
+    if (postType === "Video" && selectedMedia.length > 0) {
+      const videoFile = selectedMedia[0];
+      if (videoFile && videoFile.type.startsWith("video/")) {
+        setIsGeneratingThumbnail(true);
+        toast.loading("Generating video thumbnail...");
+        generateVideoThumbnail(videoFile)
+          .then(({ url, file }) => {
+            setVideoThumbnail(url);
+            setVideoThumbnailFile(file);
+          })
+          .catch((err) => {
+            console.error('Failed to generate video thumbnail:', err);
+            toast.error("Failed to generate video thumbnail");
+          })
+          .finally(() => {
+            setIsGeneratingThumbnail(false);
+            toast.dismiss();
+          });
+      }
+    }
+  }, [postType, selectedMedia]);
   const handleClose = () => {
     setIsTypeOpen(false);
     // setLocalPostType(type);
@@ -87,7 +156,7 @@ const PostPopup: React.FC<PostPopupProps> = ({
     handleFileSelection(files);
   };
 
-  const handleFileSelection = (files: File[]) => {
+  const handleFileSelection = async (files: File[]) => {
     if (postType === "Resource") {
       const file = files[0];
 
@@ -110,6 +179,23 @@ const PostPopup: React.FC<PostPopupProps> = ({
     });
 
     setSelectedMedia((prev) => [...prev, ...validFiles]);
+
+    // If video selected, always auto-generate a new thumbnail for the first video
+    if (postType === "Video" && validFiles.length > 0) {
+      setIsGeneratingThumbnail(true);
+      toast.loading("Generating video thumbnail...");
+      try {
+        const { url, file } = await generateVideoThumbnail(validFiles[0]);
+        setVideoThumbnail(url);
+        setVideoThumbnailFile(file);
+      } catch (err) {
+        console.error('Failed to generate video thumbnail:', err);
+        toast.error("Failed to generate video thumbnail");
+      } finally {
+        setIsGeneratingThumbnail(false);
+        toast.dismiss();
+      }
+    }
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -212,7 +298,7 @@ const PostPopup: React.FC<PostPopupProps> = ({
           {!selectedMedia.length ? (
             <div
               onClick={() => document.getElementById("mediaInput")?.click()}
-              className="bg-buttonclr h-full w-[40%] border  flex flex-col  items-center justify-center border-dashed border-gray-700 rounded-xl  "
+              className="bg-buttonclr h-full w-[40%] border  flex flex-col  items-center justify-center border-dashed border-gray-700 rounded-xl cursor-pointer  "
             >
               <Image className="w-8 h-8 text-gray-400 mb-4" />
               <p className="text-gray-600 mb-2">Add Video</p>
@@ -363,30 +449,14 @@ const PostPopup: React.FC<PostPopupProps> = ({
           </div>
         </div>
 
-        {/* Title Input */}
-        <div className="border border-gray-100 shadow-sm  rounded-lg p-3 mb-4">
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-sm text-maincl">Post Title</p>
-            <span className="text-xs text-gray-500">
-              {titleCount} characters left
-            </span>
-          </div>
-          <input
-            type="text"
-            placeholder="Write your post title here..."
-            value={postTitle}
-            onChange={handleTitleChange}
-            className="w-full outline-none text-sm"
-          />
-        </div>
-
         {/* Description */}
-        <div className="space-y-4">
+        <div className="space-y-4 border border-gray-100 shadow-sm  rounded-lg p-3 my-4">
+        <p className="text-sm text-maincl">Description</p>
           <textarea
             placeholder="What do you want to talk about?"
             value={postContent}
             onChange={handleContentChange}
-            className="w-full p-3 min-h-[20px] resize-none outline-none  text-gray-700 placeholder-gray-400"
+            className="w-full min-h-[20px] resize-none outline-none  text-gray-700 placeholder-gray-400"
           />
         </div>
 
@@ -397,7 +467,7 @@ const PostPopup: React.FC<PostPopupProps> = ({
             className="w-full py-3 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center gap-2 hover:bg-gray-50"
           >
             <Image className="w-5 h-5 text-gray-400" />
-            <span className="text-gray-600">Upload Thumbnail</span>
+            <span className="text-gray-600">change Thumbnail</span>
           </button>
           <input
             id="thumbnailInput"
@@ -408,6 +478,7 @@ const PostPopup: React.FC<PostPopupProps> = ({
               if (file) {
                 const imageUrl = URL.createObjectURL(file);
                 setVideoThumbnail(imageUrl);
+                setVideoThumbnailFile(file);
               }
             }}
             className="hidden"
@@ -523,12 +594,13 @@ const PostPopup: React.FC<PostPopupProps> = ({
             </div>
 
             {/* Description */}
-            <div className="space-y-4">
+            <div className="space-y-4 border border-gray-100 shadow-sm rounded-lg p-3">
+              <p className="text-sm text-maincl">Post Description</p>
               <textarea
                 placeholder="What do you want to talk about?"
                 value={postContent}
                 onChange={handleContentChange}
-                className="w-full p-3 min-h-[150px] resize-none outline-none  text-gray-700 placeholder-gray-400"
+                className="w-full min-h-[150px] resize-none outline-none  text-gray-700 placeholder-gray-400"
               />
             </div>
           </div>
@@ -605,7 +677,6 @@ const PostPopup: React.FC<PostPopupProps> = ({
               }
             );
 
-
             setPostTitle("");
             setPostContent("");
             setSelectedMedia([]);
@@ -613,9 +684,9 @@ const PostPopup: React.FC<PostPopupProps> = ({
             onClose();
 
             return "Post published successfully";
-          } catch (e: any) {
+          } catch (error: any) {
             throw new Error(
-              e.response?.data?.message || "Failed to publish post"
+              error.response?.data?.message || error.message || "Failed to publish post"
             );
           }
         };
@@ -689,16 +760,16 @@ const PostPopup: React.FC<PostPopupProps> = ({
 
             onClose();
 
-            return "Post published successfully";
-          } catch (e: any) {
+            return "Question posted successfully";
+          } catch (error: any) {
             throw new Error(
-              e.response?.data?.message || "Failed to publish post"
+              error.response?.data?.message || error.message || "Failed to post Question"
             );
           }
         };
 
         toast.promise(promise(), {
-          loading: "Publishing post...",
+          loading: "Posting Question...",
           success: (data) => data,
           error: (err) => err.message,
         });
@@ -713,155 +784,168 @@ const PostPopup: React.FC<PostPopupProps> = ({
         //  set isuploading true
 
         const file = selectedMedia[0];
-
-        // check file size if it is less than 10MB
-        // if (file.size < 10000000) {
-          // Call your API to get the presigned URL
-
-          // try {
-
-          //   const loading = toast.loading("uploading, please don't close the window");
-
-          //   const { data } = await axios.get(
-          //     `https://128i1lirkh.execute-api.ap-south-1.amazonaws.com/dev/uploads/url`
-          //   );
-  
-          //   console.log(data);
-  
-          //   await axios.put(data.uploadURL, file, {
-          //     headers: {
-          //       "Content-Type": file?.type || " ",
-          //     },
-          //     withCredentials: false,
-          //   });
-  
-          //   const { data: postData } = await axios.post(
-          //     `https://128i1lirkh.execute-api.ap-south-1.amazonaws.com/dev/create-reel/${userId}`,
-          //     {
-          //       title: postTitle,
-          //       description: postContent,
-          //       referenceTags: ["tag1", "tag2"],
-          //       reelMedialink: data.imageURL,
-          //     }
-          //   );
-
-          //   toast.success("Video uploaded successfully");
-          //   toast.dismiss(loading);
-
-          //   console.log(postData);
-
-          //   setPostTitle("");
-          //   setPostContent("");
-          //   setSelectedMedia([]);
-
-          //   onClose();
-          // } catch (e) {
-          //   console.log(e);
-          // }
-
-       
-
-          // set isUpload false
-        // } else {
-          // call multipart upload endpoint and get uploadId
-          const loading = toast.loading("Uploading video...");
-          try {
-            // get total size of the file
-            let totalSize = file.size;
-            // set chunk size to 10MB
-            let chunkSize = 10000000;
-            // calculate number of chunks
-            let numChunks = Math.ceil(totalSize / chunkSize);
-            if(numChunks === 0){
-              numChunks = 1
-            }
-
-            const response = await axios.post(
-              "https://128i1lirkh.execute-api.ap-south-1.amazonaws.com/dev/start-multipart-upload",
-              {
-                fileName: file.name,
-                contentType: file.type,
-                partNumbers: numChunks,
-              }
-            );
-
-            let presigned_urls = response?.data?.presignedUrls;
-            let uploadId = response?.data?.uploadId;
-
-            console.log("Presigned urls- ", presigned_urls);
-
-            // upload the file into chunks to different presigned url
-            let parts: any = [];
-            const uploadPromises = [];
-
-            for (let i = 0; i < numChunks; i++) {
-              let start = i * chunkSize;
-              let end = Math.min(start + chunkSize, totalSize);
-              let chunk = file.slice(start, end);
-              let presignedUrl = presigned_urls[i];
-
-              uploadPromises.push(
-                axios.put(presignedUrl, chunk, {
-                  headers: {
-                    "Content-Type": file.type,
-                  },
-                })
-              );
-            }
-
-            const uploadResponses = await Promise.all(uploadPromises);
-
-            uploadResponses.forEach((response, i) => {
-              // existing response handling
-
-              parts.push({
-                etag: response.headers.etag,
-                PartNumber: i + 1,
-              });
-            });
-
-            // make a call to multipart complete api
-            let complete_upload = await axios.post(
-              "https://128i1lirkh.execute-api.ap-south-1.amazonaws.com/dev/complete-multipart-upload",
-              {
-                fileName: file.name,
-                uploadId: uploadId,
-                parts: parts,
-              }
-            );
-
-            const url = complete_upload.data.fileData.Location;
-
-            console.log("file uploaded");
-
-            const { data: postData } = await axios.post(
-              `https://128i1lirkh.execute-api.ap-south-1.amazonaws.com/dev/create-reel/${userId}`,
-              {
-                title: postTitle,
-                description: postContent,
-                referenceTags: ["tag1", "tag2"],
-                reelMedialink: url,
-              }
-            );
-
-            toast.success("Video uploaded successfully");
-            toast.dismiss(loading);
-
-            console.log(postData);
-
-            setPostTitle("");
-            setPostContent("");
-            setSelectedMedia([]);
-
-            onClose();
-          } catch (error) {
-            console.log(error);
+        const loading = toast.loading("Uploading video...");
+        try {
+          // get total size of the file
+          let totalSize = file.size;
+          // set chunk size to 10MB
+          let chunkSize = 10000000;
+          // calculate number of chunks
+          let numChunks = Math.ceil(totalSize / chunkSize);
+          if (numChunks === 0) {
+            numChunks = 1;
           }
 
-          // set isUpload false
-        
-      } catch (error) {
+          const uniqueSuffix = `${Date.now()}-${Math.random()
+            .toString(36)
+            .substring(2, 8)}`;
+
+          const filename = `${userId}/videos/${uniqueSuffix}.${file?.type?.split("/")[1]}`;
+
+          // Prepare thumbnail upload if present
+          let thumbnailUrl = null;
+          let thumbnailUploadPromise = null;
+          let thumbnailFilename = null;
+
+          console.log(thumbnailFilename)
+          if (videoThumbnailFile) {
+            console.log("uploading thumbnail also")
+            thumbnailFilename = `${userId}/videos/thumbnails/${uniqueSuffix}.${videoThumbnailFile.type.split("/")[1]}`;
+            // Get presigned URL for thumbnail
+            let thumbPresignRes;
+            try {
+              thumbPresignRes = await axios.post(
+                "https://128i1lirkh.execute-api.ap-south-1.amazonaws.com/dev/uploads/multiple",
+                {
+              fileCount : 1,
+              fileTypes : [videoThumbnailFile.type],
+              id : userId,
+              type : "videos", // Use 'videos' for compatibility
+                }
+              );
+              console.log('Thumbnail presigned URL response:', thumbPresignRes.data);
+            } catch (err) {
+              toast.error("Failed to get presigned URL for thumbnail");
+              throw new Error("Failed to get presigned URL for thumbnail");
+            }
+            const thumbUploadUrl = thumbPresignRes.data.urls[0].uploadURL;
+            const thumbPublicUrl = thumbPresignRes.data.urls[0].imageURL;
+            // Upload thumbnail with error handling
+            thumbnailUploadPromise = axios.put(thumbUploadUrl, videoThumbnailFile, {
+              headers: {
+                "Content-Type": videoThumbnailFile.type,
+              },
+              withCredentials: false,
+            })
+              .then((resp) => {
+                if (resp.status !== 200) {
+                  toast.error("Thumbnail upload failed");
+                  throw new Error("Thumbnail upload failed");
+                }
+                toast.success("Thumbnail uploaded successfully");
+                return thumbPublicUrl;
+              })
+              .catch((err) => {
+                toast.error("Thumbnail upload failed");
+                console.error("Thumbnail upload error:", err);
+                throw err;
+              });
+          }
+
+          // Get presigned URLs for video chunks
+          const response = await axios.post(
+            "https://128i1lirkh.execute-api.ap-south-1.amazonaws.com/dev/start-multipart-upload",
+            {
+              fileName: filename,
+              contentType: file.type,
+              partNumbers: numChunks,
+            }
+          );
+
+          let presigned_urls = response?.data?.presignedUrls;
+          let uploadId = response?.data?.uploadId;
+
+          // Upload video chunks in parallel
+          let parts: any = [];
+          const uploadPromises = [];
+
+          for (let i = 0; i < numChunks; i++) {
+            let start = i * chunkSize;
+            let end = Math.min(start + chunkSize, totalSize);
+            let chunk = file.slice(start, end);
+            let presignedUrl = presigned_urls[i];
+
+            uploadPromises.push(
+              axios.put(presignedUrl, chunk, {
+                headers: {
+                  "Content-Type": file.type,
+                },
+              })
+            );
+          }
+
+          // Wait for both video and thumbnail uploads in parallel
+          let [uploadResponses, thumbnailResult] = await Promise.all([
+            Promise.all(uploadPromises),
+            thumbnailUploadPromise ? thumbnailUploadPromise : Promise.resolve(null),
+          ]);
+
+          if (thumbnailResult) {
+            thumbnailUrl = thumbnailResult;
+          }
+
+          uploadResponses.forEach((response, i) => {
+            parts.push({
+              etag: response.headers.etag,
+              PartNumber: i + 1,
+            });
+          });
+
+          // Complete multipart upload for video
+          let complete_upload = await axios.post(
+            "https://128i1lirkh.execute-api.ap-south-1.amazonaws.com/dev/complete-multipart-upload",
+            {
+              fileName: filename,
+              uploadId: uploadId,
+              parts: parts,
+            }
+          );
+
+          const url = complete_upload.data.fileData.Location;
+
+          // Create reel post with video and thumbnail URLs
+          await axios.post(
+            `https://128i1lirkh.execute-api.ap-south-1.amazonaws.com/dev/create-reel/${userId}`,
+            {
+              title: postTitle,
+              description: postContent,
+              referenceTags: ["tag1", "tag2"],
+              reelMedialink: url,
+              thumbnail: thumbnailUrl,
+            }
+          );
+
+          toast.success("Video uploaded successfully");
+          toast.dismiss(loading);
+
+          setCurrVideoStep(1);
+          setPostTitle("");
+          setPostContent("");
+          setSelectedMedia([]);
+          setVideoThumbnail(null);
+          setVideoThumbnailFile(null);
+
+          onClose();
+        } catch (error: any) {
+          toast.dismiss(loading);
+          toast.error(error.response?.data?.message || error.message || "Failed to create post");
+          console.log(error);
+        }
+
+        // set isUpload false
+      } catch (error: any) {
         console.log(error);
+        toast.error(error.response?.data?.message || error.message || "Failed to upload media");
         // set isUpload false
       }
     }
@@ -1046,7 +1130,7 @@ const PostPopup: React.FC<PostPopupProps> = ({
                 (!postTitle.trim() && postType !== "Video") ||
                 (!postContent.trim() && postType !== "Video") ||
                 (postType === "Resource" && !pdfFile) ||
-                (postType === "Video" && selectedMedia.length === 0)
+                (postType === "Video" && (selectedMedia.length === 0 || !videoThumbnailFile || isGeneratingThumbnail))
               }
               onClick={() => {
                 if (postType === "Resource" && currentStep === 1) {

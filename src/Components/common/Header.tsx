@@ -1,6 +1,9 @@
+// Centralized Header component for Docsile
+// (Moved from socialFeed/profile/questionFeed/videos/Network)
+
 import * as React from "react";
-import { useState } from "react";
-import { NavItemProps } from "./types";
+import { useState, useEffect } from "react";
+import { NavItemProps } from "../socialFeed/types";
 import home1 from "../../assets/icon/homel.svg";
 import home2 from "../../assets/icon/lhome2.svg";
 import questions1 from "../../assets/icon/lquestions1.svg";
@@ -19,78 +22,92 @@ import SearchPopup from "./SearchPopup";
 import { Search} from 'lucide-react';
 import HomeButton from "./HomeButton";
 import docsile from '../../assets/landing/logo.svg';
-import { useNavigate } from "react-router-dom";
+import profile from "../../assets/icon/profile.svg";
+import { useNavigate, useLocation } from "react-router-dom";
 
 interface HeaderProps {
-  onNotification: () => void;
-  onMessage: () => void;
-  onProfile: () => void;
-  onSearch: (query: string) => void;
-  userRole : string;
-  userLocation : string;
-  user : any,
-  profile : string
+  onSearch?: (query: string) => void;
   items?: NavItemProps[];
+  // All user-related props have been removed as they're now fetched directly from localStorage
 }
 
-
-const id = localStorage.getItem('Id')
+const id = localStorage.getItem('Id');
 
 const defaultNavItems: NavItemProps[] = [
   {
-    activeIcon: <img src={home2} className="w-16 h-16" alt="" />,
-    inactiveIcon: <img src={home1} className="w-16 h-16" alt="" />,
+    activeIcon: <img src={home2} className="w-16 h-16" alt="" />, 
+    inactiveIcon: <img src={home1} className="w-16 h-16" alt="" />, 
     label: "Home",
     path: "/feed",
     isActive: false,
   },
   {
-    activeIcon: <img src={questions2} className="w-16 h-16" alt="" />,
-    inactiveIcon: <img src={questions1} className="w-16 h-16" alt="" />,
+    activeIcon: <img src={questions2} className="w-16 h-16" alt="" />, 
+    inactiveIcon: <img src={questions1} className="w-16 h-16" alt="" />, 
     label: "Questions",
-    path: "/feed",
+    path: `/question/${id}`,
     isActive: false,
   },
   {
-    activeIcon: <img src={videos2} className="w-16 h-16" alt="" />,
-    inactiveIcon: <img src={videos1} className="w-16 h-16" alt="" />,
+    activeIcon: <img src={videos2} className="w-16 h-16" alt="" />, 
+    inactiveIcon: <img src={videos1} className="w-16 h-16" alt="" />, 
     label: "Videos",
-    path: "/feed",
+    path: `/videos/${id}`,
     isActive: false,
   },
   {
-    activeIcon: <img src={connect2} className="w-16 h-16" alt="" />,
-    inactiveIcon: <img src={connect1} className="w-16 h-16" alt="" />,
+    activeIcon: <img src={connect2} className="w-16 h-16" alt="" />, 
+    inactiveIcon: <img src={connect1} className="w-16 h-16" alt="" />, 
     label: "Connect",
     path: `/network/${id}`,
-    isActive: true,
+    isActive: false,
   },
-  
   {
-    activeIcon: <img src={careers2} className="w-16 h-16" alt="" />,
-    inactiveIcon: <img src={careers1} className="w-16 h-16" alt="" />,
+    activeIcon: <img src={careers2} className="w-16 h-16" alt="" />, 
+    inactiveIcon: <img src={careers1} className="w-16 h-16" alt="" />, 
     label: "Careers",
-    path: "/feed",
+    path: "/careers",
     isActive: false,
   },
 ];
 
 export const Header: React.FC<HeaderProps> = ({
-  onNotification,
-  onMessage,
-  onSearch,
-  userRole,
-  userLocation,
-  profile, 
-  user,
+  onSearch = () => {},
   items = defaultNavItems,
 }) => {
-  const [navItems, setNavItems] = useState<NavItemProps[]>(items);
+  // Get user details from localStorage
+  const [userDetails, setUserDetails] = useState<any>(null);
+  
+  useEffect(() => {
+    try {
+      // Try to get user details from localStorage
+      const storedUser = localStorage.getItem("User");
+      if (storedUser) {
+        setUserDetails(JSON.parse(storedUser));
+      }
+    } catch (error) {
+      console.error("Error parsing user details:", error);
+    }
+  }, []);
+  
+  // Default profile image if none is available
+  const profileImage = userDetails?.profile_picture || profile;
+  const userName = userDetails?.name || "";
+  const userRole = userDetails?.department && userDetails?.organisation_name ? 
+    `${userDetails.department} | ${userDetails.organisation_name}` : "";
+  const userLocation = userDetails?.city || "";
+  const location = useLocation();
+const [navItems, setNavItems] = useState<NavItemProps[]>(() => {
+  return items.map(item => ({
+    ...item,
+    isActive: location.pathname === item.path
+  }));
+});
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [isSearchOpen, setIsSearchOpen] = useState<boolean>(false);
   const profileButtonRef = React.useRef<HTMLButtonElement>(null);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -98,13 +115,23 @@ export const Header: React.FC<HeaderProps> = ({
   };
 
   const handleNavClick = (index: number) => {
-    const updatedItems = navItems.map((item, i) => ({
+  const updatedItems = navItems.map((item, i) => ({
+    ...item,
+    isActive: i === index,
+  }));
+  setNavItems(updatedItems);
+  navigate(updatedItems[index].path);
+};
+
+// Sync navItems' isActive with current location
+React.useEffect(() => {
+  setNavItems(prevItems =>
+    prevItems.map(item => ({
       ...item,
-      isActive: i === index,
-    }));
-    setNavItems(updatedItems);
-    navigate(updatedItems[index].path)
-  };
+      isActive: location.pathname === item.path
+    }))
+  );
+}, [location.pathname]);
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
@@ -116,7 +143,6 @@ export const Header: React.FC<HeaderProps> = ({
     setIsSearchOpen(false);
   };
 
-  
   return (
     <div className="flex flex-row items-center py-4  max-w-7xl mx-auto  justify-between font-fontsm  w-full px-5 lg:py-1 bg-white  ">
       {/* Logo and Search Section */}
@@ -167,7 +193,7 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               key={index}
               onClick={() => handleNavClick(index)}
-              className={`flex items-center w-14 xl:w-16  gap-1 ${
+              className={`flex hover:bg-gray-100 rounded-full items-center w-14 xl:w-16  gap-1 ${
                 item.isActive ? "text-blue-600" : "text-gray-500"
               }`}
             >
@@ -176,17 +202,21 @@ export const Header: React.FC<HeaderProps> = ({
           ))}
         </div>
 
-        <div className="flex items-center gap-1    bg-white   rounded-3xl">
+        <div className="flex items-center gap-1 bg-white rounded-3xl">
           <button
-            onClick={onNotification}
-            className="p-1 hover:bg-gray-100 rounded-full flex shrink-0"
+          
+            className={`p-1 rounded-full flex shrink-0 transition-colors duration-100 ${
+              location.pathname.startsWith('/notifications') ? 'bg-gray-100' : 'hover:bg-gray-100'
+            }`}
           >
             <img src={notifications} alt="" className="w-6 h-6  lg:hidden"  />
             <img src={notifications1} alt="" className="w-14 xl:w-16 hidden lg:block" />
           </button>
           <button
-            onClick={onMessage}
-            className="p-1 hover:bg-gray-100 rounded-full flex shrink-0"
+            onClick={() => navigate('/messages')}
+            className={`p-1 rounded-full flex shrink-0 transition-colors duration-100 ${
+              location.pathname.startsWith('/messages') ? 'bg-gray-100' : 'hover:bg-gray-100'
+            }`}
           >
             <img src={messages} alt="" className="w-6 h-6 lg:hidden " />
             <img src={messages1} alt="" className="w-14 xl:w-16 hidden lg:block" />
@@ -194,7 +224,9 @@ export const Header: React.FC<HeaderProps> = ({
           <button
              ref={profileButtonRef}
            onClick={() => setIsProfileOpen(true)}
-            className="p-1 hover:bg-gray-100 rounded-full flex shrink-0"
+            className={`p-1 rounded-full flex shrink-0 transition-colors duration-100 ${
+              location.pathname.startsWith('/profile') ? 'bg-gray-100' : 'hover:bg-gray-100'
+            }`}
           >
             <img src = {profile} alt="" className="w-7 h-7 xl:w-8 xl:h-8 rounded-full object-cover " />
           </button>
@@ -204,10 +236,10 @@ export const Header: React.FC<HeaderProps> = ({
         isOpen={isProfileOpen}
         onClose={() => setIsProfileOpen(false)}
         buttonRef={profileButtonRef}
-        userImage={profile}
-        userName= {user}
-        userRole= {userRole}
-        location= {userLocation}
+        userImage={profileImage}
+        userName={userName}
+        userRole={userRole}
+        location={userLocation}
       />
     </div>
   );

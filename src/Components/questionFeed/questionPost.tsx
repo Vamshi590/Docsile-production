@@ -19,6 +19,7 @@ import like from "../../assets/icon/like1.svg";
 import liked from "../../assets/icon/liked.svg";
 import notinterested from "../../assets/icon/notintrested.svg";
 import profile from "../../assets/icon/profile.svg";
+import { useNavigate } from "react-router-dom";
 
 // Types
 interface Author {
@@ -50,6 +51,7 @@ interface QuestionPostProps {
   content: string;
   images: string[];
   agrees: number;
+  userId : number;
   answers: number;
   disagrees: number;
   isUrgent: boolean;
@@ -206,6 +208,7 @@ export const QuestionPost: React.FC<QuestionPostProps> = ({
   avatar,
   name,
   bio,
+  userId,
   timeAgo,
   title,
   content,
@@ -259,11 +262,13 @@ export const QuestionPost: React.FC<QuestionPostProps> = ({
     currentTranslate.current = 0;
   };
 
-  const handlePrev = () => {
+  const handlePrev = (e: React.MouseEvent) => {
+    e.stopPropagation();
     if (currentIndex > 0) setCurrentIndex((prevIndex) => prevIndex - 1);
   };
 
-  const handleNext = () => {
+  const handleNext = (e: React.MouseEvent) => {
+    e.stopPropagation();
     if (currentIndex < images.length - 1)
       setCurrentIndex((prevIndex) => prevIndex + 1);
   };
@@ -271,7 +276,7 @@ export const QuestionPost: React.FC<QuestionPostProps> = ({
   const getVisibleDots = () => {
     const maxVisibleDots = 5;
     const half = Math.floor(maxVisibleDots / 2);
-    return images.map((_, index) => {
+    return images?.map((_, index) => {
       const diff = Math.abs(index - currentIndex);
       if (diff <= half) return 1;
       return Math.max(0.3, 1 - (diff - half) * 0.2);
@@ -301,35 +306,40 @@ export const QuestionPost: React.FC<QuestionPostProps> = ({
   type KeyValueObject = { [key: string]: string };
 
   function extractValues(data: (KeyValueObject | string)[]): string[] {
-    return data.map((obj) =>
+    return data?.map((obj) =>
       typeof obj === "string" ? obj : Object.values(obj)[2]
     );
   }
 
   const valuesArray = extractValues(images);
+  const navigate = useNavigate()
+
+  function handleNavUser(usid : number) {
+    navigate(`/connect/profile/${usid}`)
+  }
 
   return (
     <div>
       {isUrgent && (
-        <div className="px-4 py-1 bg-urgentbg text-urgenttxt font-medium text-fontlit rounded-t-2xl mt-2">
+        <div className="px-4 py-1 bg-urgentbg text-urgenttxt font-medium text-fontlit rounded-t-xl mt-2">
           Urgent
         </div>
       )}
-      <article className="flex flex-col p-4  bg-white rounded-x-2xl rounded-b-2xl border border-gray-200 font-fontsm">
+      <article className="flex flex-col p-4  bg-white rounded-x-xl rounded-b-xl border border-gray-200 font-fontsm">
         <div className="flex justify-between items-start relative">
-          <div className="flex gap-3 items-center">
+          <div onClick={() => handleNavUser(userId)} className="flex gap-3 items-center cursor-pointer ">
             <div>
               <img
                 src={avatar || profile}
                 alt={`${name}'s profile`}
-                className="w-[46px] h-[46px] rounded-full object-cover "
+                className="w-12 h-12 rounded-full object-cover "
               />
             </div>
 
             <div className="pt-1">
-              <h3 className="text-md font-medium text-neutral-700">{name}</h3>
-              <p className="text-fontlit text-neutral-500">{bio}</p>
-              <p className="text-fontlit text-neutral-700">{timeAgo}</p>
+              <h3 className="text-md font-semibold text-neutral-600">{name}</h3>
+              <p className="text-xs text-neutral-500">{bio}</p>
+              <p className="text-fontlit text-neutral-600">{timeAgo}</p>
             </div>
           </div>
           <div className="flex items-center">
@@ -402,7 +412,7 @@ export const QuestionPost: React.FC<QuestionPostProps> = ({
             >
               {content}
             </p>
-            {content.length > 150 && (
+            {content?.length > 150 && (
               <button
                 onClick={() => setIsExpanded(!isExpanded)}
                 className="mt-1 text-xs flex justify-start text-slate-500 hover:text-slate-700"
@@ -415,12 +425,12 @@ export const QuestionPost: React.FC<QuestionPostProps> = ({
 
         {valuesArray.length > 0 && (
           <div
-            className="relative w-full mb-4 group"
+            className="relative w-full mb-4 group mt-2"
             onMouseEnter={() => setShowArrows(true)}
             onMouseLeave={() => setShowArrows(false)}
           >
             <div className="absolute top-2 right-4 z-10 bg-gray-400 bg-opacity-50 text-white text-xs py-1 px-2 rounded-full">
-              {currentIndex + 1}/{images.length}
+              {currentIndex + 1}/{valuesArray.length}
             </div>
             {showArrows && currentIndex > 0 && (
               <button
@@ -430,7 +440,7 @@ export const QuestionPost: React.FC<QuestionPostProps> = ({
                 <IoIosArrowDropleftCircle size={30} />
               </button>
             )}
-            {showArrows && currentIndex < images.length - 1 && (
+            {showArrows && currentIndex < valuesArray.length - 1 && (
               <button
                 className="absolute top-1/2 right-2 z-10 transform -translate-y-1/2 bg-gray bg-opacity-50 text-white p-2 rounded-full group-hover:opacity-80"
                 onClick={handleNext}
@@ -439,7 +449,7 @@ export const QuestionPost: React.FC<QuestionPostProps> = ({
               </button>
             )}
             <div
-              className="relative overflow-hidden z-0 "
+              className="relative overflow-hidden"
               onTouchStart={handleTouchStart}
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
@@ -450,11 +460,11 @@ export const QuestionPost: React.FC<QuestionPostProps> = ({
               >
                 {valuesArray.map((image, index) => (
                   <div
-                    onClick={handleQuestionClick}
                     key={index}
-                    className="flex-none w-full lg:h-64 rounded-lg bg-gray-200"
+                    className="flex-none w-full rounded-lg bg-gray-200"
                   >
                     <img
+                      onClick={() => setIsExpanded && setIsExpanded(!isExpanded)}
                       src={image}
                       alt={`Post image ${index + 1}`}
                       className="w-full h-full object-cover rounded-lg"
@@ -467,9 +477,7 @@ export const QuestionPost: React.FC<QuestionPostProps> = ({
               {valuesArray.map((_, index) => (
                 <div
                   key={index}
-                  className={`h-2 w-2 rounded-full ${
-                    index === currentIndex ? "bg-blue-600" : "bg-gray-400"
-                  }`}
+                  className={`h-2 w-2 rounded-full ${index === currentIndex ? "bg-blue-600" : "bg-gray-400"}`}
                   style={{ opacity: visibleDots[index] }}
                 ></div>
               ))}

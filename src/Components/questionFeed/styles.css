@@ -1,0 +1,77 @@
+/* Carousel Styles */
+.carousel {
+  position: relative;
+  padding-bottom: 30px;
+  overflow: hidden;
+}
+
+.carousel .slider-wrapper {
+  transition: transform 500ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.carousel .slider {
+  transition: height 500ms ease;
+}
+
+.carousel .slide {
+  transition: opacity 300ms ease;
+}
+
+/* Dots Container */
+.carousel .control-dots {
+  position: absolute;
+  bottom: -10px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  padding: 15px 0;
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  z-index: 2;
+}
+
+/* Dot Styles */
+.carousel .control-dots .dot {
+  background: #d1d5db;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin: 0;
+  opacity: 0.7;
+  cursor: pointer;
+  transition: all 400ms cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Active Dot */
+.carousel .control-dots .dot.selected {
+  background: #3b82f6;
+  width: 12px;
+  height: 12px;
+  opacity: 1;
+  transform: translateY(-2px);
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+}
+
+/* Hover Effect */
+.carousel .control-dots .dot:hover {
+  transform: scale(1.2);
+  opacity: 0.9;
+}
+
+/* Image Transition */
+.carousel .carousel-slider .slide img {
+  transition: transform 500ms ease, opacity 400ms ease;
+}
+
+.carousel .carousel-slider .slide.selected img {
+  transform: scale(1.01);
+  opacity: 1;
+}
+
+.carousel .carousel-slider .slide.previous img,
+.carousel .carousel-slider .slide.next img {
+  opacity: 0.97;
+}

@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import location1 from '../../assets/icon/location.svg';
 import logout from '../../assets/icon/logout.svg';
 import settings from '../../assets/icon/settings.svg';
-import language from '../../assets/icon/language.svg';
 import help from '../../assets/icon/help.svg';
 
 
@@ -62,64 +61,72 @@ const HomeButton: React.FC<HomeButtonProps> = ({
   if (!isOpen) return null;
 
   const menuItems = [
-    { label: 'Saved', onClick: () => navigate('/saved') },
+   
     { label: 'Analytics', onClick: () => navigate('/analytics') },
     { label: 'Be a Mentor', onClick: () => navigate('/mentor') },
     { label: 'Settings', onClick: () => navigate('/settings'), icon: <img src={settings} alt="" /> },
-    { label: 'Language', onClick: () => navigate('/language'), icon: <img src={language} alt="" /> },
+
     { label: 'Help', onClick: () => navigate('/help'), icon: <img src={help} alt="" /> },
-    { label: 'Log Out', onClick: () => navigate('/logout'), icon: <img src={logout} alt="" /> }
+    { label: 'Log Out', onClick: () => {
+      localStorage.removeItem("Id"),
+      navigate('/')}, icon: <img src={logout} alt="" /> }
   ];
+  const userId = localStorage.getItem("Id")
 
   return (
-    <div className="fixed inset-0 z-50" style={{ background: 'rgba(0, 0, 0, 0)' }}>
+    <div className="fixed inset-0 z-50" onClick={onClose}>
       <div
         ref={popupRef}
+        onClick={e => e.stopPropagation()}
         style={{
           position: 'fixed',
           top: `${popupPosition.top}px`,
-          right: `${popupPosition.right }px`,
-          width: '280px'
+          right: `${popupPosition.right}px`,
+          width: '240px'
         }}
-        className="bg-buttonclr bg-opacity-80 backdrop-blur-md  rounded-xl shadow-lg overflow-hidden"
+        className="bg-white rounded-xl shadow-xl overflow-hidden border border-gray-100"
       >
-        <div className="p-2">
-          <div className="flex items-start space-x-2">
-            <div className='flex flex-col' >
-
+        {/* Profile Section */}
+        <div className="p-3 bg-gradient-to-r from-maincl/5 to-fillc/5">
+          <div className="flex items-center gap-2">
             <img
               src={userImage}
               alt="Profile"
-              className="w-12 h-12 rounded-full object-cover ml-2 mt-2"
-              />
-            <button
-                className="mt-2 px-1 py-1 bg-maincl rounded-3xl text-white  text-fontlit hover:bg-fillc transition-colors"
-                onClick={() => navigate('/profile')}
-                >
-                View Profile
-              </button>
+              className="w-10 h-10 rounded-full object-cover ring-1 ring-white shadow-sm"
+            />
+            <div className="flex-1 overflow-hidden">
+              <h2 className="text-xs font-semibold text-gray-800 truncate">{userName}</h2>
+              <p className="text-xs text-gray-600 truncate">{userRole}</p>
+              {location && (
+                <div className="flex items-center mt-0.5 gap-1 text-gray-500">
+                  <img src={location1} alt="Location" className="w-2.5 h-2.5" />
+                  <span className="text-xs truncate">{location}</span>
                 </div>
-            <div className="flex-1 mt-2">
-              <h2 className="text-xs font-semibold text-gray-800">{userName}</h2>
-              <p className="text-fontlit text-gray-600 ">{userRole}</p>
-              <div className="flex items-center mt-2 gap-1 text-gray-500">
-              <img src={location1} alt=""  className='w-3'/>
-                <span className="text-fontlit"> {location}</span>
-              </div>
-              
+              )}
             </div>
           </div>
+          <button
+            className="mt-2 w-full py-1 bg-maincl rounded text-white text-xs font-medium hover:bg-fillc transition-all duration-200 shadow-sm"
+            onClick={() => navigate(`/profile/${userId}`)}
+          >
+            View Profile
+          </button>
         </div>
 
-        <div className="border-t border-gray-200 pb-3">
+        {/* Menu Items */}
+        <div className="py-0.5">
           {menuItems.map((item, index) => (
             <button
               key={index}
               onClick={item.onClick}
-              className="w-full px-6 py-1 text-left hover:bg-gray-50 flex items-center space-x-3 transition-colors"
+              className="w-full px-3 py-1.5 text-left hover:bg-gray-50 flex items-center gap-2 transition-colors"
             >
-              {item.icon && <span className="text-sm">{item.icon}</span>}
-              <span className="text-gray-700 text-sm">{item.label}</span>
+              {item.icon && (
+                <span className="text-gray-500 w-4 h-4 flex items-center justify-center">
+                  {item.icon}
+                </span>
+              )}
+              <span className="text-gray-700 text-xs">{item.label}</span>
             </button>
           ))}
         </div>

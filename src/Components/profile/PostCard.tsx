@@ -5,12 +5,13 @@ import like from "../../assets/icon/like1.svg";
 import comment from "../../assets/icon/comment.svg";
 import repost from "../../assets/icon/repost.svg";
 import more1 from "../../assets/icon/more1.svg";
-
+import profile from "../../assets/icon/profile.svg";
 interface PostCardProps {
   userImage: string;
   userName: string;
   userTitle: string;
   timeAgo: string;
+  postTitle: string;
   content: string;
   images: string[];
   likes: number;
@@ -24,6 +25,7 @@ const PostCard: React.FC<PostCardProps> = ({
   userName,
   userTitle,
   timeAgo,
+  postTitle,
   content,
   images,
   likes,
@@ -49,9 +51,9 @@ const PostCard: React.FC<PostCardProps> = ({
           <div className="flex gap-3 items-center">
             <div>
               <img
-                src={userImage}
+                src={userImage || profile}
                 alt={`${userName}'s profile`}
-                className="w-[46px] h-[46px] rounded-full shrink-0"
+                className="w-[46px] h-[46px] rounded-full shrink-0 object-cover "
               />
             </div>
             <div className="pt-1">
@@ -74,7 +76,7 @@ const PostCard: React.FC<PostCardProps> = ({
         </div>
         {/* Content section */}
         <div className="mt-4">
-          <h4 className="text-sm font-medium text-neutral-700">{userTitle}</h4>
+          <h4 className="text-sm font-medium text-neutral-700">{postTitle}</h4>
           <p className="mt-1 text-sm font-light text-neutral-500 line-clamp-2">
             {content}
           </p>

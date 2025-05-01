@@ -6,6 +6,7 @@ import plus from "../../assets/icon/plus.svg";
 import { toast, Toaster } from "sonner";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 
 const SignUpPage4: React.FC = () => {
   const [image, setImage] = useState<File | null>(null);
@@ -47,10 +48,16 @@ const SignUpPage4: React.FC = () => {
 
     try{
 
-      const {data} = await  axios.get(`https://128i1lirkh.execute-api.ap-south-1.amazonaws.com/dev/uploads/url`);
+      const {data} = await  axios.post(`https://128i1lirkh.execute-api.ap-south-1.amazonaws.com/dev/uploads/multiple`,{
+        filename : "uploads",
+        fileCount : 1,
+        fileTypes : [image.type],
+        id : userid,
+        type : "uploads"
+      });
 
       console.log(data)
-      await axios.put(data.uploadURL, image, {
+      await axios.put(data.urls[0].uploadURL, image, {
         headers: { 
           "Content-Type": image?.type || " " 
         },
@@ -101,8 +108,13 @@ const SignUpPage4: React.FC = () => {
       <Toaster/>
 
       {/* Right Section (Always Visible) */}
-      <div className="flex flex-1 justify-start items-center lg:pr-4 p-2  ">
-        <div className="w-full max-w-lg bg-white shadow-xl border border-gray-200  rounded-3xl p-6 flex flex-col justify-center lg:max-h-[90%] max-h-[80%]   lg:p-24 h-[90vh] my-auto ">
+      <div className="flex flex-1 lg:justify-start  justify-center items-center lg:pr-4 p-2  ">
+        <motion.div 
+         initial={{ x: "100%", opacity: 0 }} // Starts off-screen to the right
+         animate={{ x: 0, opacity: 1 }} // Slides in to its position
+         exit={{ x: "-100%", opacity: 0 }} // Slides out to the left
+         transition={{ type: "tween", duration: 0.5 }} // Smooth transition
+        className="w-full max-w-lg bg-white shadow-xl border border-gray-200  rounded-3xl p-6 flex flex-col justify-center lg:max-h-[90%] max-h-[80%]   lg:p-20 h-[90vh] my-auto ">
           <div className="flex items-center  text-center mb-14 lg:mb-10 w-full">
             <img
               src={docsilelogo}
@@ -168,7 +180,7 @@ const SignUpPage4: React.FC = () => {
 
 
           </div>
-        </div>
+        </motion.div>
       </div>
     </div>
   );

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { DotLoader } from "react-spinners";
 import MembershipForm from "./forms/MembershipForm";
 import membershipIcon from "../../assets/icon/membership.svg";
 import add from "../../assets/icon/add.svg";
@@ -7,7 +8,7 @@ import more1 from "../../assets/icon/more1.svg";
 import pmessage from "../../assets/icon/pmessage.svg";
 import add2 from "../../assets/icon/add2.svg";
 import { FaLink, FaPlus } from "react-icons/fa";
-import { Header } from "./Header";
+import { Header } from "../common/Header";
 import location from "../../assets/icon/location.svg";
 import edit from "../../assets/icon/edit.svg";
 import arrowright from "../../assets/icon/arrowright.svg";
@@ -237,9 +238,8 @@ const Profile: React.FC = () => {
               <img
                 src={arrowright}
                 alt=""
-                className={`transform ${
-                  showAllPosts ? "rotate-180" : ""
-                } w-4 h-4`}
+                className={`transform ${showAllPosts ? "rotate-180" : ""
+                  } w-4 h-4`}
               />
             </button>
           )}
@@ -258,9 +258,8 @@ const Profile: React.FC = () => {
         ) : (
           <div className="Z">
             <button
-              className={`absolute left-0 top-1/2 z-10 -translate-y-1/2 bg-gray-200 p-2 rounded-full shadow-md ${
-                showAllPosts ? "opacity-100" : "opacity-0"
-              } group-hover: transition-opacity`}
+              className={`absolute left-0 top-1/2 z-10 -translate-y-1/2 bg-gray-200 p-2 rounded-full shadow-md ${showAllPosts ? "opacity-100" : "opacity-0"
+                } group-hover: transition-opacity`}
               onClick={() => {
                 const container = document.getElementById(
                   "posts-scroll-container1"
@@ -278,9 +277,8 @@ const Profile: React.FC = () => {
             </button>
 
             <button
-              className={`absolute right-0 top-1/2 z-10 -translate-y-1/2 bg-gray-200 p-2 rounded-full shadow-md ${
-                showAllPosts ? "opacity-100" : "opacity-0"
-              } group-hover: transition-opacity`}
+              className={`absolute right-0 top-1/2 z-10 -translate-y-1/2 bg-gray-200 p-2 rounded-full shadow-md ${showAllPosts ? "opacity-100" : "opacity-0"
+                } group-hover: transition-opacity`}
               onClick={() => {
                 const container = document.getElementById(
                   "posts-scroll-container1"
@@ -307,6 +305,7 @@ const Profile: React.FC = () => {
                       userName={userDetails.name}
                       timeAgo={post.time}
                       content={post.description}
+                      postTitle={post.title}
                       likes={post._count.likes}
                       reposts={0}
                       comments={post._count.comments}
@@ -340,9 +339,8 @@ const Profile: React.FC = () => {
               <img
                 src={arrowright}
                 alt=""
-                className={`transform ${
-                  showAllQuestions ? "rotate-180" : ""
-                } w-4 h-4`}
+                className={`transform ${showAllQuestions ? "rotate-180" : ""
+                  } w-4 h-4`}
               />
             </button>
           )}
@@ -362,9 +360,8 @@ const Profile: React.FC = () => {
           <div className="relative">
             {/* Arrow buttons - Show on hover */}
             <button
-              className={`absolute left-0 top-1/2 z-10 -translate-y-1/2 bg-gray-200 p-2 rounded-full shadow-md ${
-                showAllQuestions ? "opacity-100" : "opacity-0"
-              }  transition-opacity`}
+              className={`absolute left-0 top-1/2 z-10 -translate-y-1/2 bg-gray-200 p-2 rounded-full shadow-md ${showAllQuestions ? "opacity-100" : "opacity-0"
+                }  transition-opacity`}
               onClick={() => {
                 const container = document.getElementById(
                   "questions-scroll-container1"
@@ -382,9 +379,8 @@ const Profile: React.FC = () => {
             </button>
 
             <button
-              className={`absolute right-0 top-1/2 z-10 -translate-y-1/2 bg-gray-200 p-2 rounded-full shadow-md ${
-                showAllQuestions ? "opacity-100" : "opacity-0"
-              } transition-opacity`}
+              className={`absolute right-0 top-1/2 z-10 -translate-y-1/2 bg-gray-200 p-2 rounded-full shadow-md ${showAllQuestions ? "opacity-100" : "opacity-0"
+                } transition-opacity`}
               onClick={() => {
                 const container = document.getElementById(
                   "questions-scroll-container1"
@@ -508,6 +504,7 @@ const Profile: React.FC = () => {
   const userid = localStorage.getItem("Id") || id;
 
   const [userDetails, setUserDetails] = useState<any>(null);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     if (userid) {
@@ -531,6 +528,7 @@ const Profile: React.FC = () => {
   // Function to fetch user data from the backend
   const fetchUserData = async (userId: string, storedUserData: any = null) => {
     try {
+      setLoading(true);
       const response = await axios.get(
         `https://128i1lirkh.execute-api.ap-south-1.amazonaws.com/dev/profile/${userId}`
       );
@@ -565,8 +563,10 @@ const Profile: React.FC = () => {
         localStorage.setItem("User", JSON.stringify(fetchedUser));
         setUserDetails(fetchedUser);
       }
+      setLoading(false);
     } catch (err: any) {
       console.error("Error fetching data:", err.response?.data?.message || err);
+      setLoading(false);
     }
   };
 
@@ -614,6 +614,12 @@ const Profile: React.FC = () => {
 
   return (
     <div className="min-h-screen font-fontsm mx-auto bg-mainbg ">
+      {loading && (
+        <div className="fixed inset-0 flex flex-col items-center justify-center z-50 bg-white">
+          <DotLoader color="#1E40AF" size={50} />
+          <p className="mt-4 text-gray-600 font-medium">Loading...</p>
+        </div>
+      )}
       {/* Mobile Header - Only visible on mobile */}
       <div className="lg:hidden flex items-center justify-between p-4  bg-white ">
         <div className="flex items-center gap-3">
@@ -634,16 +640,7 @@ const Profile: React.FC = () => {
 
       {/* Desktop Header - Only visible on desktop */}
       <div className="hidden lg:block bg-white border-b sticky top-0 z-50">
-        <Header
-          onNotification={() => console.log("Notification clicked")}
-          onMessage={() => console.log("Message clicked")}
-          onProfile={() => console.log("Profile clicked")}
-          onSearch={() => console.log("Profile clicked")}
-          profile={userDetails?.profile_picture || profile}
-          user={userDetails?.name}
-          userRole={`${userDetails?.department} | ${userDetails?.organisation_name}`}
-          userLocation={userDetails?.city}
-        />
+        <Header />
       </div>
 
       {/* Main Content */}
@@ -654,7 +651,7 @@ const Profile: React.FC = () => {
             <div className="  ">
               <div className="flex flex-col  items-center text-center">
                 <div className="lg:border p-3 lg:py-8 bg-white shadow-sm rounded-xl w-full border-gray-200">
-                  <div className="flex flex-row lg:flex-col space-x-6  items-center">
+                  <div className="flex flex-row lg:flex-col items-center">
                     {/* <div className="relative w-20 h-20  mx-auto rounded-full overflow-hidden shadow-lg">
                       <img
                         src={userDetails?.profile_picture || profile}
@@ -742,9 +739,8 @@ const Profile: React.FC = () => {
                 <div className="w-full bg-white rounded-xl lg:hidden sm:block max-w-4xl mx-auto relative mt-2 h-[180px] overflow-hidden ">
                   {/* First Custom Section */}
                   <div
-                    className={`absolute border rounded-xl   p-4 w-full h-full transform transition-transform duration-700 ease-in-out ${
-                      activeIndex === 0 ? "translate-x-0" : "-translate-x-full"
-                    }`}
+                    className={`absolute border rounded-xl   p-4 w-full h-full transform transition-transform duration-700 ease-in-out ${activeIndex === 0 ? "translate-x-0" : "-translate-x-full"
+                      }`}
                   >
                     <div className=" ">
                       <div className="flex justify-between items-start mb-2">
@@ -761,13 +757,12 @@ const Profile: React.FC = () => {
 
                   {/* Second Custom Section */}
                   <div
-                    className={`absolute w-full h-full transform transition-transform duration-700 ease-in-out ${
-                      activeIndex === 1
+                    className={`absolute w-full h-full transform transition-transform duration-700 ease-in-out ${activeIndex === 1
                         ? "translate-x-0"
                         : activeIndex < 1
-                        ? "translate-x-full"
-                        : "-translate-x-full"
-                    }`}
+                          ? "translate-x-full"
+                          : "-translate-x-full"
+                      }`}
                   >
                     <div className="w-full  h-[200px] border border-gray-200 p-4 rounded-lg">
                       <div className="flex   justify-between items-start mb-4">
@@ -828,13 +823,12 @@ const Profile: React.FC = () => {
 
                   {/* Third Custom Section */}
                   <div
-                    className={`absolute  w-full h-full transform transition-transform duration-700 ease-in-out ${
-                      activeIndex === 2
+                    className={`absolute  w-full h-full transform transition-transform duration-700 ease-in-out ${activeIndex === 2
                         ? "translate-x-0"
                         : activeIndex < 2
-                        ? "translate-x-full"
-                        : "-translate-x-full"
-                    }`}
+                          ? "translate-x-full"
+                          : "-translate-x-full"
+                      }`}
                   >
                     <div className="p-4 border h-[200px] border-gray-200 rounded-lg">
                       {/* recent positions */}
@@ -869,9 +863,8 @@ const Profile: React.FC = () => {
                       <button
                         key={index}
                         onClick={() => setActiveIndex(index)}
-                        className={`w-1 h-1 rounded-full transition-colors duration-300 ${
-                          index === activeIndex ? "bg-maincl" : "bg-gray-300"
-                        }`}
+                        className={`w-1 h-1 rounded-full transition-colors duration-300 ${index === activeIndex ? "bg-maincl" : "bg-gray-300"
+                          }`}
                       />
                     ))}
                   </div>
@@ -953,11 +946,10 @@ const Profile: React.FC = () => {
                   <button
                     key={tab}
                     onClick={() => setActiveTab(tab.toLowerCase())}
-                    className={`px-4 py-3 text-sm whitespace-nowrap ${
-                      activeTab === tab.toLowerCase()
+                    className={`px-4 py-3 text-sm whitespace-nowrap ${activeTab === tab.toLowerCase()
                         ? "border-b-2 border-blue-500 text-blue-500"
                         : "text-gray-500"
-                    }`}
+                      }`}
                   >
                     {tab}
                   </button>
@@ -969,244 +961,239 @@ const Profile: React.FC = () => {
               {/* Show ActivitySection for both mobile and desktop when activity tab is active */}
               {(activeTab === "activity" ||
                 (!isMobile && activeDesktopTab === "activity")) && (
-                <ActivitySection />
-              )}
+                  <ActivitySection />
+                )}
             </div>
             <div className="bg-white mt-3 rounded-lg  lg:hidden">
               {/* Show ActivitySection for both mobile and desktop when activity tab is active */}
               {(activeTab === "events" ||
                 (!isMobile && activeDesktopTab === "events")) && (
-                <EventCalendar />
-              )}
+                  <EventCalendar />
+                )}
             </div>
             <div className="bg-white rounded-lg shadow-sm lg:hidden">
               {/* Show ActivitySection for both mobile and desktop when activity tab is active */}
               {(activeTab === "saved" ||
                 (!isMobile && activeDesktopTab === "saved")) && (
-                <div className="space-y-3 bg-mainbg">
-                  {/* Saved Posts Section */}
-                  <div className=" bg-white relative group p-2 rounded-2xl">
-                    <div className="flex bg-white justify-between items-center ">
-                      <h2 className="text-xl p-4 font-medium">
-                        Saved Posts{" "}
-                        <span className="text-gray-500 text-md">
-                          {" "}
-                          ({userDetails?.posts.length})
-                        </span>
-                      </h2>
-                      {userDetails?.posts.length > 2 && (
-                        <button
-                          onClick={() => setShowAllPosts(!showAllPosts)}
-                          className="text-fillc text-sm font-medium flex items-center gap-1"
-                        >
-                          {showAllPosts ? "Show Less" : "See all Posts"}
-                          <img
-                            src={arrowright}
-                            alt=""
-                            className={`transform ${
-                              showAllPosts ? "rotate-180" : ""
-                            } w-4 h-4`}
-                          />
-                        </button>
+                  <div className="space-y-3 bg-mainbg">
+                    {/* Saved Posts Section */}
+                    <div className=" bg-white relative group p-2 rounded-2xl">
+                      <div className="flex bg-white justify-between items-center ">
+                        <h2 className="text-xl p-4 font-medium">
+                          Saved Posts{" "}
+                          <span className="text-gray-500 text-md">
+                            {" "}
+                            ({userDetails?.posts.length})
+                          </span>
+                        </h2>
+                        {userDetails?.posts.length > 2 && (
+                          <button
+                            onClick={() => setShowAllPosts(!showAllPosts)}
+                            className="text-fillc text-sm font-medium flex items-center gap-1"
+                          >
+                            {showAllPosts ? "Show Less" : "See all Posts"}
+                            <img
+                              src={arrowright}
+                              alt=""
+                              className={`transform ${showAllPosts ? "rotate-180" : ""
+                                } w-4 h-4`}
+                            />
+                          </button>
+                        )}
+                      </div>
+
+                      {userDetails?.posts.length === 0 ? (
+                        <div className="text-center py-8 bg-gray-50 rounded-lg">
+                          <p className="text-gray-600 text-sm">
+                            No posts yet. Share your first post to start engaging
+                            with your network!
+                          </p>
+                          <button className="mt-4 px-4 py-2 bg-maincl text-white rounded-full text-sm hover:bg-fillc">
+                            Create Post
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="Z">
+                          <button
+                            className={`absolute left-0 top-1/2 z-10 -translate-y-1/2 bg-gray-200 p-2 rounded-full shadow-md ${showAllPosts ? "opacity-100" : "opacity-0"
+                              } group-hover: transition-opacity`}
+                            onClick={() => {
+                              const container = document.getElementById(
+                                "posts-scroll-container1"
+                              );
+                              if (container) {
+                                container.scrollLeft -= container.offsetWidth;
+                              }
+                            }}
+                          >
+                            <img
+                              src={arrowright}
+                              alt="Previous"
+                              className="w-4 h-4 transform rotate-180"
+                            />
+                          </button>
+
+                          <button
+                            className={`absolute right-0 top-1/2 z-10 -translate-y-1/2 bg-gray-200 p-2 rounded-full shadow-md ${showAllPosts ? "opacity-100" : "opacity-0"
+                              } group-hover: transition-opacity`}
+                            onClick={() => {
+                              const container = document.getElementById(
+                                "posts-scroll-container1"
+                              );
+                              if (container) {
+                                container.scrollLeft += container.offsetWidth;
+                              }
+                            }}
+                          >
+                            <img
+                              src={arrowright}
+                              alt="Next"
+                              className="w-4 h-4"
+                            />
+                          </button>
+
+                          <div
+                            id="posts-scroll-container1"
+                            className="flex overflow-x-hidden scroll-smooth"
+                            style={{ scrollBehavior: "smooth" }}
+                          >
+                            <div className="flex gap-4 transition-transform duration-300">
+                              {userDetails?.posts.map((post: any) => (
+                                <div
+                                  key={post.id}
+                                  className="w-[450px] flex-none"
+                                >
+                                  <PostCard
+                                    userTitle={post.title}
+                                    userImage={userDetails?.profile_picture}
+                                    userName={userDetails.name}
+                                    postTitle={post.title}
+                                    timeAgo={post.time}
+                                    content={post.description}
+                                    likes={post._count.likes}
+                                    reposts={0}
+                                    comments={post._count.comments}
+                                    images={post.postImageLinks}
+                                    shares={0}
+                                  />
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
                       )}
                     </div>
 
-                    {userDetails?.posts.length === 0 ? (
-                      <div className="text-center py-8 bg-gray-50 rounded-lg">
-                        <p className="text-gray-600 text-sm">
-                          No posts yet. Share your first post to start engaging
-                          with your network!
-                        </p>
-                        <button className="mt-4 px-4 py-2 bg-maincl text-white rounded-full text-sm hover:bg-fillc">
-                          Create Post
-                        </button>
+                    {/* Saved Questions Section */}
+                    <div className=" bg-white p-2 rounded-2xl relative group">
+                      <div className="flex bg-white  justify-between items-center">
+                        <h2 className="text-xl p-4 font-medium">
+                          Saved Questions{" "}
+                          <span className="text-gray-500 text-md">
+                            {" "}
+                            ({userDetails?.questions?.length})
+                          </span>
+                        </h2>
+                        {userDetails?.questions?.length > 2 && (
+                          <button
+                            onClick={() => setShowAllQuestions(!showAllQuestions)}
+                            className="text-fillc text-sm font-medium flex items-center gap-1"
+                          >
+                            {showAllQuestions ? "Show Less" : "See all Questions"}
+                            <img
+                              src={arrowright}
+                              alt=""
+                              className={`transform ${showAllQuestions ? "rotate-180" : ""
+                                } w-4 h-4`}
+                            />
+                          </button>
+                        )}
                       </div>
-                    ) : (
-                      <div className="Z">
-                        <button
-                          className={`absolute left-0 top-1/2 z-10 -translate-y-1/2 bg-gray-200 p-2 rounded-full shadow-md ${
-                            showAllPosts ? "opacity-100" : "opacity-0"
-                          } group-hover: transition-opacity`}
-                          onClick={() => {
-                            const container = document.getElementById(
-                              "posts-scroll-container1"
-                            );
-                            if (container) {
-                              container.scrollLeft -= container.offsetWidth;
-                            }
-                          }}
-                        >
-                          <img
-                            src={arrowright}
-                            alt="Previous"
-                            className="w-4 h-4 transform rotate-180"
-                          />
-                        </button>
 
-                        <button
-                          className={`absolute right-0 top-1/2 z-10 -translate-y-1/2 bg-gray-200 p-2 rounded-full shadow-md ${
-                            showAllPosts ? "opacity-100" : "opacity-0"
-                          } group-hover: transition-opacity`}
-                          onClick={() => {
-                            const container = document.getElementById(
-                              "posts-scroll-container1"
-                            );
-                            if (container) {
-                              container.scrollLeft += container.offsetWidth;
-                            }
-                          }}
-                        >
-                          <img
-                            src={arrowright}
-                            alt="Next"
-                            className="w-4 h-4"
-                          />
-                        </button>
+                      {userDetails?.questions?.length === 0 ? (
+                        <div className="text-center py-8 bg-gray-50 rounded-lg">
+                          <p className="text-gray-600 text-sm">
+                            No questions posted yet. Start engaging with your
+                            network by asking your first question!
+                          </p>
+                          <button className="mt-4 px-4 py-2 bg-maincl text-white rounded-full text-sm hover:bg-fillc">
+                            Ask Question
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="relative">
+                          {/* Arrow buttons - Show on hover */}
+                          <button
+                            className={`absolute left-0 top-1/2 z-10 -translate-y-1/2 bg-gray-200 p-2 rounded-full shadow-md ${showAllQuestions ? "opacity-100" : "opacity-0"
+                              }  transition-opacity`}
+                            onClick={() => {
+                              const container = document.getElementById(
+                                "questions-scroll-container1"
+                              );
+                              if (container) {
+                                container.scrollLeft -= container.offsetWidth;
+                              }
+                            }}
+                          >
+                            <img
+                              src={arrowright}
+                              alt="Previous"
+                              className="w-4 h-4 transform rotate-180"
+                            />
+                          </button>
 
-                        <div
-                          id="posts-scroll-container1"
-                          className="flex overflow-x-hidden scroll-smooth"
-                          style={{ scrollBehavior: "smooth" }}
-                        >
-                          <div className="flex gap-4 transition-transform duration-300">
-                            {userDetails?.posts.map((post: any) => (
-                              <div
-                                key={post.id}
-                                className="w-[450px] flex-none"
-                              >
-                                <PostCard
-                                  userTitle={post.title}
-                                  userImage={userDetails?.profile_picture}
-                                  userName={userDetails.name}
-                                  timeAgo={post.time}
-                                  content={post.description}
-                                  likes={post._count.likes}
-                                  reposts={0}
-                                  comments={post._count.comments}
-                                  images={post.postImageLinks}
-                                  shares={0}
-                                />
-                              </div>
-                            ))}
+                          <button
+                            className={`absolute right-0 top-1/2 z-10 -translate-y-1/2 bg-gray-200 p-2 rounded-full shadow-md ${showAllQuestions ? "opacity-100" : "opacity-0"
+                              } transition-opacity`}
+                            onClick={() => {
+                              const container = document.getElementById(
+                                "questions-scroll-container1"
+                              );
+                              if (container) {
+                                container.scrollLeft += container.offsetWidth;
+                              }
+                            }}
+                          >
+                            <img
+                              src={arrowright}
+                              alt="Next"
+                              className="w-4 h-4"
+                            />
+                          </button>
+
+                          <div
+                            id="questions-scroll-container1"
+                            className="flex overflow-x-hidden scroll-smooth"
+                            style={{ scrollBehavior: "smooth" }}
+                          >
+                            <div className="flex gap-4 transition-transform duration-300">
+                              {userDetails?.questions?.map((question: any) => (
+                                <div
+                                  key={question.id}
+                                  className="w-[450px] flex-none"
+                                >
+                                  <QuestionCard
+                                    userImage={userDetails?.profile_picture}
+                                    userName={userDetails?.name}
+                                    userTitle={`${userDetails?.bio}`}
+                                    timeAgo={question.timeAgo}
+                                    questionTitle={question.question}
+                                    questionContent={
+                                      question.question_description
+                                    }
+                                    images={question?.question_image_links}
+                                    answers={question._count.answers}
+                                    shares={0}
+                                  />
+                                </div>
+                              ))}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Saved Questions Section */}
-                  <div className=" bg-white p-2 rounded-2xl relative group">
-                    <div className="flex bg-white  justify-between items-center">
-                      <h2 className="text-xl p-4 font-medium">
-                        Saved Questions{" "}
-                        <span className="text-gray-500 text-md">
-                          {" "}
-                          ({userDetails?.questions?.length})
-                        </span>
-                      </h2>
-                      {userDetails?.questions?.length > 2 && (
-                        <button
-                          onClick={() => setShowAllQuestions(!showAllQuestions)}
-                          className="text-fillc text-sm font-medium flex items-center gap-1"
-                        >
-                          {showAllQuestions ? "Show Less" : "See all Questions"}
-                          <img
-                            src={arrowright}
-                            alt=""
-                            className={`transform ${
-                              showAllQuestions ? "rotate-180" : ""
-                            } w-4 h-4`}
-                          />
-                        </button>
                       )}
                     </div>
-
-                    {userDetails?.questions?.length === 0 ? (
-                      <div className="text-center py-8 bg-gray-50 rounded-lg">
-                        <p className="text-gray-600 text-sm">
-                          No questions posted yet. Start engaging with your
-                          network by asking your first question!
-                        </p>
-                        <button className="mt-4 px-4 py-2 bg-maincl text-white rounded-full text-sm hover:bg-fillc">
-                          Ask Question
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="relative">
-                        {/* Arrow buttons - Show on hover */}
-                        <button
-                          className={`absolute left-0 top-1/2 z-10 -translate-y-1/2 bg-gray-200 p-2 rounded-full shadow-md ${
-                            showAllQuestions ? "opacity-100" : "opacity-0"
-                          }  transition-opacity`}
-                          onClick={() => {
-                            const container = document.getElementById(
-                              "questions-scroll-container1"
-                            );
-                            if (container) {
-                              container.scrollLeft -= container.offsetWidth;
-                            }
-                          }}
-                        >
-                          <img
-                            src={arrowright}
-                            alt="Previous"
-                            className="w-4 h-4 transform rotate-180"
-                          />
-                        </button>
-
-                        <button
-                          className={`absolute right-0 top-1/2 z-10 -translate-y-1/2 bg-gray-200 p-2 rounded-full shadow-md ${
-                            showAllQuestions ? "opacity-100" : "opacity-0"
-                          } transition-opacity`}
-                          onClick={() => {
-                            const container = document.getElementById(
-                              "questions-scroll-container1"
-                            );
-                            if (container) {
-                              container.scrollLeft += container.offsetWidth;
-                            }
-                          }}
-                        >
-                          <img
-                            src={arrowright}
-                            alt="Next"
-                            className="w-4 h-4"
-                          />
-                        </button>
-
-                        <div
-                          id="questions-scroll-container1"
-                          className="flex overflow-x-hidden scroll-smooth"
-                          style={{ scrollBehavior: "smooth" }}
-                        >
-                          <div className="flex gap-4 transition-transform duration-300">
-                            {userDetails?.questions?.map((question: any) => (
-                              <div
-                                key={question.id}
-                                className="w-[450px] flex-none"
-                              >
-                                <QuestionCard
-                                  userImage={userDetails?.profile_picture}
-                                  userName={userDetails?.name}
-                                  userTitle={`${userDetails?.bio}`}
-                                  timeAgo={question.timeAgo}
-                                  questionTitle={question.question}
-                                  questionContent={
-                                    question.question_description
-                                  }
-                                  images={question?.question_image_links}
-                                  answers={question._count.answers}
-                                  shares={0}
-                                />
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    )}
                   </div>
-                </div>
-              )}
+                )}
             </div>
 
             <div className=" rounded-lg shadow-sm">
@@ -1220,11 +1207,10 @@ const Profile: React.FC = () => {
                         <button
                           key={tab}
                           onClick={() => setActiveDesktopTab(tab.toLowerCase())}
-                          className={`px-4 py-4 text-sm font-medium border-b-2 whitespace-nowrap ${
-                            activeDesktopTab === tab.toLowerCase()
+                          className={`px-4 py-4 text-sm font-medium border-b-2 whitespace-nowrap ${activeDesktopTab === tab.toLowerCase()
                               ? "border-maincl text-maincl"
                               : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                          }`}
+                            }`}
                         >
                           {tab}
                         </button>
@@ -1237,137 +1223,194 @@ const Profile: React.FC = () => {
                   <div className="mt-2 lg:mt-3">
                     {(activeDesktopTab === "About" ||
                       activeDesktopTab === "about") && (
-                      <div>
-                        <Toaster />
+                        <div>
+                          <Toaster />
 
-                        {/* About Section - Only visible when About tab is active on mobile */}
-                        <div
-                          className={`${
-                            activeTab === "about" || activeTab === "About"
-                              ? "block"
-                              : "hidden lg:block"
-                          }`}
-                        >
-                          <div className="p-6 border bg-white border-gray-200 rounded-xl my-3 ">
-                            <div className="flex justify-between items-center mb-4">
-                              <h2 className="text-xl font-medium">About</h2>
-                              <button className="text-gray-500">
-                                <img src={edit} alt="" />
-                              </button>
-                            </div>
-                            <p className="text-gray-600">{aboutText}</p>
-                          </div>
-                        </div>
-
-                        {/* Experience Section */}
-                        <div
-                          className={`p-6 border bg-white border-gray-100 rounded-xl mt-3 group relative ${
-                            activeTab === "about" || activeTab === "About"
-                              ? "block"
-                              : "hidden lg:block"
-                          }`}
-                        >
-                          <div className="flex gap-4 justify-between items-center mb-6">
-                            <h2 className="text-xl font-medium">Experience</h2>
-                            <div className="flex items-center gap-4">
-                              <button
-                                className="text-gray-500"
-                                onClick={() =>
-                                  setShowEditExperience(!showEditExperience)
-                                }
-                              >
-                                <img src={edit} alt="" />
-                              </button>
-                              <button
-                                className="flex items-center space-x-1 bg-maincl text-white px-1 py-1 rounded-full hover:bg-fillc text-sm"
-                                onClick={() => {
-                                  setEditingExperience(null);
-                                  setIsExperienceFormOpen(true);
-                                }}
-                              >
-                                <FaPlus className="w-3 h-3" />
-                              </button>
-                            </div>
-                          </div>
-
-                          <div className="relative">
-                            {userDetails?.experiences.length === 0 ? (
-                              <div className="text-center py-8">
-                                <p className="text-gray-600 text-sm">
-                                  Adding your work experience will highlight
-                                  your professional journey and showcase your
-                                  skills, making your profile more compelling
-                                  and complete!
-                                </p>
+                          {/* About Section - Only visible when About tab is active on mobile */}
+                          <div
+                            className={`${activeTab === "about" || activeTab === "About"
+                                ? "block"
+                                : "hidden lg:block"
+                              }`}
+                          >
+                            <div className="p-6 border bg-white border-gray-200 rounded-xl my-3 ">
+                              <div className="flex justify-between items-center mb-4">
+                                <h2 className="text-xl font-medium">About</h2>
+                                <button className="text-gray-500">
+                                  <img src={edit} alt="" />
+                                </button>
                               </div>
-                            ) : (
-                              <>
-                                {/* Desktop View */}
-                                <div className="hidden lg:block">
-                                  {userDetails?.experiences.length > 3 && (
-                                    <>
-                                      <button
-                                        className="absolute left-0 top-1/3 z-50 -translate-y-1/2 bg-gray-200 p-2 rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-30"
-                                        onClick={() => {
-                                          const container =
-                                            document.getElementById(
-                                              "experience-scroll"
-                                            );
-                                          if (container)
-                                            container.scrollLeft -= 300;
-                                        }}
-                                      >
-                                        <img
-                                          src={arrowright}
-                                          alt="Previous"
-                                          className="w-4 h-4 transform rotate-180"
-                                        />
-                                      </button>
-                                      <button
-                                        className="absolute right-0 top-1/3 -translate-y-1/2 z-10 bg-gray-200 p-2 rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-30"
-                                        onClick={() => {
-                                          const container =
-                                            document.getElementById(
-                                              "experience-scroll"
-                                            );
-                                          if (container)
-                                            container.scrollLeft += 300;
-                                        }}
-                                      >
-                                        <img
-                                          src={arrowright}
-                                          alt="Next"
-                                          className="w-4 h-4"
-                                        />
-                                      </button>
-                                    </>
-                                  )}
+                              <p className="text-gray-600">{aboutText}</p>
+                            </div>
+                          </div>
 
-                                  <ol
-                                    id="experience-scroll"
-                                    className="flex overflow-x-hidden no-scrollbar scroll-smooth"
-                                  >
-                                    {userDetails?.experiences.map(
-                                      (exp: any, index: number) => (
-                                        <li
-                                          key={index}
-                                          className="relative flex-none w-72 mb-6 mr-8 last:mr-0"
+                          {/* Experience Section */}
+                          <div
+                            className={`p-6 border bg-white border-gray-100 rounded-xl mt-3 group relative ${activeTab === "about" || activeTab === "About"
+                                ? "block"
+                                : "hidden lg:block"
+                              }`}
+                          >
+                            <div className="flex gap-4 justify-between items-center mb-6">
+                              <h2 className="text-xl font-medium">Experience</h2>
+                              <div className="flex items-center gap-4">
+                                <button
+                                  className="text-gray-500"
+                                  onClick={() =>
+                                    setShowEditExperience(!showEditExperience)
+                                  }
+                                >
+                                  <img src={edit} alt="" />
+                                </button>
+                                <button
+                                  className="flex items-center space-x-1 bg-maincl text-white px-1 py-1 rounded-full hover:bg-fillc text-sm"
+                                  onClick={() => {
+                                    setEditingExperience(null);
+                                    setIsExperienceFormOpen(true);
+                                  }}
+                                >
+                                  <FaPlus className="w-3 h-3" />
+                                </button>
+                              </div>
+                            </div>
+
+                            <div className="relative">
+                              {userDetails?.experiences.length === 0 ? (
+                                <div className="text-center py-8">
+                                  <p className="text-gray-600 text-sm">
+                                    Adding your work experience will highlight
+                                    your professional journey and showcase your
+                                    skills, making your profile more compelling
+                                    and complete!
+                                  </p>
+                                </div>
+                              ) : (
+                                <>
+                                  {/* Desktop View */}
+                                  <div className="hidden lg:block">
+                                    {userDetails?.experiences.length > 3 && (
+                                      <>
+                                        <button
+                                          className="absolute left-0 top-1/3 z-50 -translate-y-1/2 bg-gray-200 p-2 rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-30"
+                                          onClick={() => {
+                                            const container =
+                                              document.getElementById(
+                                                "experience-scroll"
+                                              );
+                                            if (container)
+                                              container.scrollLeft -= 300;
+                                          }}
                                         >
-                                          <div className="flex items-center">
-                                            <div className="z-10 flex items-center justify-center w-12 h-12 bg-white rounded-full ring-0 ring-white sm:ring-8 shrink-0 overflow-hidden border-2 border-gray-100">
-                                              <img
-                                                src={exp.img || experience}
-                                                alt={`${exp.company} logo`}
-                                                className="w-12 h-12 object-cover"
-                                              />
-                                            </div>
-                                            {index <
-                                              userDetails?.experiences.length -
+                                          <img
+                                            src={arrowright}
+                                            alt="Previous"
+                                            className="w-4 h-4 transform rotate-180"
+                                          />
+                                        </button>
+                                        <button
+                                          className="absolute right-0 top-1/3 -translate-y-1/2 z-10 bg-gray-200 p-2 rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-30"
+                                          onClick={() => {
+                                            const container =
+                                              document.getElementById(
+                                                "experience-scroll"
+                                              );
+                                            if (container)
+                                              container.scrollLeft += 300;
+                                          }}
+                                        >
+                                          <img
+                                            src={arrowright}
+                                            alt="Next"
+                                            className="w-4 h-4"
+                                          />
+                                        </button>
+                                      </>
+                                    )}
+
+                                    <ol
+                                      id="experience-scroll"
+                                      className="flex overflow-x-hidden no-scrollbar scroll-smooth"
+                                    >
+                                      {userDetails?.experiences.map(
+                                        (exp: any, index: number) => (
+                                          <li
+                                            key={index}
+                                            className="relative flex-none w-72 mb-6 mr-8 last:mr-0"
+                                          >
+                                            <div className="flex items-center">
+                                              <div className="z-10 flex items-center justify-center w-12 h-12 bg-white rounded-full ring-0 ring-white sm:ring-8 shrink-0 overflow-hidden border-2 border-gray-100">
+                                                <img
+                                                  src={exp.img || experience}
+                                                  alt={`${exp.company} logo`}
+                                                  className="w-12 h-12 object-cover"
+                                                />
+                                              </div>
+                                              {index <
+                                                userDetails?.experiences.length -
                                                 1 && (
-                                              <div className="hidden sm:flex w-full bg-gray-200 h-0.5"></div>
-                                            )}
+                                                  <div className="hidden sm:flex w-full bg-gray-200 h-0.5"></div>
+                                                )}
+                                            </div>
+                                            <div className="mt-3 sm:pe-8 relative">
+                                              {showEditExperience && (
+                                                <button
+                                                  onClick={() => {
+                                                    setEditingExperience(exp);
+                                                    setIsExperienceFormOpen(true);
+                                                  }}
+                                                  className="absolute right-0 top-0 p-1 bg-gray-100 rounded-full hover:bg-gray-200"
+                                                >
+                                                  <img
+                                                    src={edit}
+                                                    alt="Edit"
+                                                    className="w-3 h-3"
+                                                  />
+                                                </button>
+                                              )}
+                                              <h3 className="text-sm w-72 overflow-hidden text-ellipsis whitespace-wrap font-medium text-black">
+                                                {exp.title}
+                                              </h3>
+                                              <p className="text-sm font-light text-gray-900">
+                                                {exp.organisation}
+                                              </p>
+                                              <time className="block  text-xs font-normal text-gray-900">
+                                                {exp.startDate}
+                                              </time>
+                                              {exp.description && (
+                                                <p className="text-xs font-normal text-gray-900">
+                                                  {exp.description}
+                                                </p>
+                                              )}
+                                              <p className="text-xs font-normal text-gray-900">
+                                                {exp.location}
+                                              </p>
+                                            </div>
+                                          </li>
+                                        )
+                                      )}
+                                    </ol>
+                                  </div>
+
+                                  {/* Mobile View */}
+                                  <div className="lg:hidden flex flex-col space-y-8">
+                                    {userDetails?.experiences
+                                      ?.slice(
+                                        0,
+                                        expanded ? experiences.length : 3
+                                      )
+                                      .map((exp: any, index: number) => (
+                                        <div
+                                          key={index}
+                                          className="flex items-start gap-4"
+                                        >
+                                          <div className="flex-shrink-0">
+                                            <img
+                                              src={exp.img || experience}
+                                              alt={`${exp.company} logo`}
+                                              className="w-12 h-12 rounded-full border-2 border-gray-100"
+                                            />
                                           </div>
-                                          <div className="mt-3 sm:pe-8 relative">
+                                          <div className="flex-grow relative">
                                             {showEditExperience && (
                                               <button
                                                 onClick={() => {
@@ -1383,180 +1426,118 @@ const Profile: React.FC = () => {
                                                 />
                                               </button>
                                             )}
-                                            <h3 className="text-sm w-72 overflow-hidden text-ellipsis whitespace-wrap font-medium text-black">
+                                            <h3 className="text-sm font-normal text-gray-900">
                                               {exp.title}
                                             </h3>
-                                            <p className="text-sm font-light text-gray-900">
+                                            <p className="text-xs font-light text-gray-600">
                                               {exp.organisation}
                                             </p>
-                                            <time className="block  text-xs font-normal text-gray-900">
+                                            <time className="block text-xs font-normal text-gray-500">
                                               {exp.startDate}
                                             </time>
                                             {exp.description && (
-                                              <p className="text-xs font-normal text-gray-900">
+                                              <p className="text-sm font-normal text-gray-500">
                                                 {exp.description}
                                               </p>
                                             )}
-                                            <p className="text-xs font-normal text-gray-900">
+                                            <p className="text-xs  font-normal text-gray-500">
                                               {exp.location}
                                             </p>
                                           </div>
-                                        </li>
-                                      )
-                                    )}
-                                  </ol>
-                                </div>
+                                        </div>
+                                      ))}
 
-                                {/* Mobile View */}
-                                <div className="lg:hidden flex flex-col space-y-8">
-                                  {userDetails?.experiences
-                                    ?.slice(
-                                      0,
-                                      expanded ? experiences.length : 3
-                                    )
-                                    .map((exp: any, index: number) => (
-                                      <div
-                                        key={index}
-                                        className="flex items-start gap-4"
+                                    {userDetails?.experiences.length > 3 && (
+                                      <button
+                                        onClick={() => setExpanded(!expanded)}
+                                        className="text-fillc text-sm font-medium flex items-center gap-1 lg:hidden"
                                       >
-                                        <div className="flex-shrink-0">
-                                          <img
-                                            src={exp.img || experience}
-                                            alt={`${exp.company} logo`}
-                                            className="w-12 h-12 rounded-full border-2 border-gray-100"
-                                          />
-                                        </div>
-                                        <div className="flex-grow relative">
-                                          {showEditExperience && (
-                                            <button
-                                              onClick={() => {
-                                                setEditingExperience(exp);
-                                                setIsExperienceFormOpen(true);
-                                              }}
-                                              className="absolute right-0 top-0 p-1 bg-gray-100 rounded-full hover:bg-gray-200"
-                                            >
-                                              <img
-                                                src={edit}
-                                                alt="Edit"
-                                                className="w-3 h-3"
-                                              />
-                                            </button>
-                                          )}
-                                          <h3 className="text-sm font-normal text-gray-900">
-                                            {exp.title}
-                                          </h3>
-                                          <p className="text-xs font-light text-gray-600">
-                                            {exp.company}
-                                          </p>
-                                          <time className="block text-xs font-normal text-gray-500">
-                                            {exp.date}
-                                          </time>
-                                          {exp.description && (
-                                            <p className="text-sm font-normal text-gray-500">
-                                              {exp.description}
-                                            </p>
-                                          )}
-                                          <p className="text-sm font-normal text-gray-500">
-                                            {exp.location}
-                                          </p>
-                                        </div>
-                                      </div>
-                                    ))}
-
-                                  {userDetails?.experiences.length > 3 && (
-                                    <button
-                                      onClick={() => setExpanded(!expanded)}
-                                      className="text-fillc text-sm font-medium flex items-center gap-1 lg:hidden"
-                                    >
-                                      {expanded
-                                        ? "Show Less"
-                                        : "See all Experience"}
-                                      <img
-                                        src={arrowright}
-                                        alt=""
-                                        className={`transform ${
-                                          expanded ? "rotate-180" : ""
-                                        } w-4 h-4`}
-                                      />
-                                    </button>
-                                  )}
-                                </div>
-                              </>
-                            )}
+                                        {expanded
+                                          ? "Show Less"
+                                          : "See all Experience"}
+                                        <img
+                                          src={arrowright}
+                                          alt=""
+                                          className={`transform ${expanded ? "rotate-180" : ""
+                                            } w-4 h-4`}
+                                        />
+                                      </button>
+                                    )}
+                                  </div>
+                                </>
+                              )}
+                            </div>
                           </div>
-                        </div>
 
-                        {/* Experience Form Modal */}
-                        {isExperienceFormOpen && (
-                          <ExperienceForm
-                            isOpen={isExperienceFormOpen}
-                            onClose={() => {
-                              setIsExperienceFormOpen(false);
-                              setEditingExperience(null);
-                            }}
-                            onSubmit={(data) => {
-                              if (editingExperience) {
-                                const updatedExperiences = experiences.map(
-                                  (exp) =>
-                                    exp.id === editingExperience.id
-                                      ? {
+                          {/* Experience Form Modal */}
+                          {isExperienceFormOpen && (
+                            <ExperienceForm
+                              isOpen={isExperienceFormOpen}
+                              onClose={() => {
+                                setIsExperienceFormOpen(false);
+                                setEditingExperience(null);
+                              }}
+                              onSubmit={(data) => {
+                                if (editingExperience) {
+                                  const updatedExperiences = experiences.map(
+                                    (exp) =>
+                                      exp.id === editingExperience.id
+                                        ? {
                                           ...exp,
                                           title: data.title,
                                           organisation: data.organisation,
                                           startDate: data.startDate,
                                           city: data.city,
                                           state: data.state,
-                                          location: `${data.city}${
-                                            data.state
+                                          location: `${data.city}${data.state
                                               ? ", " +
-                                                State.getStateByCodeAndCountry(
-                                                  data.state,
-                                                  "IN"
-                                                )?.name
+                                              State.getStateByCodeAndCountry(
+                                                data.state,
+                                                "IN"
+                                              )?.name
                                               : ""
-                                          }`,
+                                            }`,
                                           description: data.description,
                                           img:
                                             data.img instanceof File
                                               ? URL.createObjectURL(data.img)
                                               : exp.img,
                                         }
-                                      : exp
-                                );
-                                setExperiences(updatedExperiences);
-                                handleAddExperiences(data, editingExperience);
-                              } else {
-                                const newExperience: ExperienceItem = {
-                                  id: Date.now(),
-                                  title: data.title,
-                                  organisation: data.organisation,
-                                  startDate: data.startDate,
-                                  city: data.city,
-                                  state: data.state,
-                                  location: `${data.city}${
-                                    data.state
-                                      ? ", " +
+                                        : exp
+                                  );
+                                  setExperiences(updatedExperiences);
+                                  handleAddExperiences(data, editingExperience);
+                                } else {
+                                  const newExperience: ExperienceItem = {
+                                    id: Date.now(),
+                                    title: data.title,
+                                    organisation: data.organisation,
+                                    startDate: data.startDate,
+                                    city: data.city,
+                                    state: data.state,
+                                    location: `${data.city}${data.state
+                                        ? ", " +
                                         State.getStateByCodeAndCountry(
                                           data.state,
                                           "IN"
                                         )?.name
-                                      : ""
-                                  }`,
-                                  description: data.description,
-                                  img:
-                                    data.img instanceof File
-                                      ? URL.createObjectURL(data.img)
-                                      : "https://cdn.builder.io/api/v1/image/assets/TEMP/e6f21b8e48966c867e6781375245b708b2595a844a18bfe5cb5ae20e42019372",
-                                };
-                                setExperiences([...experiences, newExperience]);
-                                handleAddExperiences(data, editingExperience);
-                              }
-                              setIsExperienceFormOpen(false);
-                              setEditingExperience(null);
-                            }}
-                            initialData={
-                              editingExperience
-                                ? {
+                                        : ""
+                                      }`,
+                                    description: data.description,
+                                    img:
+                                      data.img instanceof File
+                                        ? URL.createObjectURL(data.img)
+                                        : "https://cdn.builder.io/api/v1/image/assets/TEMP/e6f21b8e48966c867e6781375245b708b2595a844a18bfe5cb5ae20e42019372",
+                                  };
+                                  setExperiences([...experiences, newExperience]);
+                                  handleAddExperiences(data, editingExperience);
+                                }
+                                setIsExperienceFormOpen(false);
+                                setEditingExperience(null);
+                              }}
+                              initialData={
+                                editingExperience
+                                  ? {
                                     title: editingExperience.title,
                                     organisation:
                                       editingExperience.organisation,
@@ -1568,255 +1549,253 @@ const Profile: React.FC = () => {
                                     img: editingExperience.img,
                                     notifyFollowers: false,
                                   }
-                                : undefined
-                            }
-                            isEditing={!!editingExperience}
-                            key={
-                              editingExperience
-                                ? `edit-${editingExperience.title}`
-                                : "new-experience"
-                            }
-                          />
-                        )}
+                                  : undefined
+                              }
+                              isEditing={!!editingExperience}
+                              key={
+                                editingExperience
+                                  ? `edit-${editingExperience.title}`
+                                  : "new-experience"
+                              }
+                            />
+                          )}
 
-                        {/* Education Section */}
-                        <div
-                          className={`p-6 border bg-white border-gray-100 rounded-xl overflow-hidden mt-3 group relative ${
-                            activeTab === "about" || activeTab === "About"
-                              ? "block"
-                              : "hidden lg:block"
-                          }`}
-                        >
-                          <div className="flex gap-4  justify-between items-center mb-6">
-                            <h2 className="text-xl  font-medium">Education</h2>
-                            <div className="flex items-center gap-4">
-                              <button
-                                className="text-gray-500"
-                                onClick={() => setIsEditMode(!isEditMode)}
-                              >
-                                <img src={edit} alt="" />
-                              </button>
-                              <button
-                                className="flex items-center space-x-1 bg-maincl text-white px-1 py-1 rounded-full hover:bg-fillc text-sm"
-                                onClick={() => {
-                                  setEditingEducation(null);
-                                  setIsEducationFormOpen(true);
-                                }}
-                              >
-                                <FaPlus className="w-3 h-3" />
-                              </button>
-                            </div>
-                          </div>
-
-                          <div className="relative">
-                            {userDetails?.educations?.length === 0 ? (
-                              <div className="text-center py-8">
-                                <p className="text-gray-600 text-sm">
-                                  Adding your educational background will help
-                                  demonstrate your qualifications and expertise,
-                                  making your profile more well-rounded and
-                                  informative!
-                                </p>
+                          {/* Education Section */}
+                          <div
+                            className={`p-6 border bg-white border-gray-100 rounded-xl overflow-hidden mt-3 group relative ${activeTab === "about" || activeTab === "About"
+                                ? "block"
+                                : "hidden lg:block"
+                              }`}
+                          >
+                            <div className="flex gap-4  justify-between items-center mb-6">
+                              <h2 className="text-xl  font-medium">Education</h2>
+                              <div className="flex items-center gap-4">
+                                <button
+                                  className="text-gray-500"
+                                  onClick={() => setIsEditMode(!isEditMode)}
+                                >
+                                  <img src={edit} alt="" />
+                                </button>
+                                <button
+                                  className="flex items-center space-x-1 bg-maincl text-white px-1 py-1 rounded-full hover:bg-fillc text-sm"
+                                  onClick={() => {
+                                    setEditingEducation(null);
+                                    setIsEducationFormOpen(true);
+                                  }}
+                                >
+                                  <FaPlus className="w-3 h-3" />
+                                </button>
                               </div>
-                            ) : (
-                              <>
-                                {/* Desktop View */}
-                                <div className="hidden lg:block">
-                                  {/* Left scroll button - Only show if more than 3 items */}
-                                  {userDetails?.educations?.length > 3 && (
-                                    <button
-                                      className="absolute left-0 top-1/3 z-50 -translate-y-1/2 bg-gray-200 p-2 rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-30"
-                                      onClick={() => {
-                                        const container =
-                                          document.getElementById(
-                                            "education-scroll"
-                                          );
-                                        if (container)
-                                          container.scrollLeft -= 300;
-                                      }}
-                                    >
-                                      <img
-                                        src={arrowright}
-                                        alt="Previous"
-                                        className="w-4 h-4 transform rotate-180"
-                                      />
-                                    </button>
-                                  )}
+                            </div>
 
-                                  {/* Right scroll button - Only show if more than 3 items */}
-                                  {userDetails?.educations.length > 3 && (
-                                    <button
-                                      className="absolute right-0 top-1/3 -translate-y-1/2 z-10 bg-gray-200 p-2 rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-30"
-                                      onClick={() => {
-                                        const container =
-                                          document.getElementById(
-                                            "education-scroll"
-                                          );
-                                        if (container)
-                                          container.scrollLeft += 300;
-                                      }}
-                                    >
-                                      <img
-                                        src={arrowright}
-                                        alt="Next"
-                                        className="w-4 h-4"
-                                      />
-                                    </button>
-                                  )}
+                            <div className="relative">
+                              {userDetails?.educations?.length === 0 ? (
+                                <div className="text-center py-8">
+                                  <p className="text-gray-600 text-sm">
+                                    Adding your educational background will help
+                                    demonstrate your qualifications and expertise,
+                                    making your profile more well-rounded and
+                                    informative!
+                                  </p>
+                                </div>
+                              ) : (
+                                <>
+                                  {/* Desktop View */}
+                                  <div className="hidden lg:block">
+                                    {/* Left scroll button - Only show if more than 3 items */}
+                                    {userDetails?.educations?.length > 3 && (
+                                      <button
+                                        className="absolute left-0 top-1/3 z-50 -translate-y-1/2 bg-gray-200 p-2 rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-30"
+                                        onClick={() => {
+                                          const container =
+                                            document.getElementById(
+                                              "education-scroll"
+                                            );
+                                          if (container)
+                                            container.scrollLeft -= 300;
+                                        }}
+                                      >
+                                        <img
+                                          src={arrowright}
+                                          alt="Previous"
+                                          className="w-4 h-4 transform rotate-180"
+                                        />
+                                      </button>
+                                    )}
 
-                                  <ol
-                                    id="education-scroll"
-                                    className="flex overflow-x-hidden no-scrollbar scroll-smooth"
-                                  >
-                                    {userDetails?.educations.map(
-                                      (edu: any, index: number) => (
-                                        <li
-                                          key={index}
-                                          className="relative flex-none w-72 mb-6 mr-8 last:mr-0"
-                                        >
-                                          <div className="flex items-center">
-                                            <div className="z-10 flex items-center justify-center w-12 h-12 bg-white rounded-full ring-0 ring-white sm:ring-8 shrink-0 overflow-hidden border-2 border-gray-100">
-                                              <img
-                                                src={edu.logo || education}
-                                                alt={`${edu.institution} logo`}
-                                                className="w-12 h-12 object-cover"
-                                              />
+                                    {/* Right scroll button - Only show if more than 3 items */}
+                                    {userDetails?.educations.length > 3 && (
+                                      <button
+                                        className="absolute right-0 top-1/3 -translate-y-1/2 z-10 bg-gray-200 p-2 rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-30"
+                                        onClick={() => {
+                                          const container =
+                                            document.getElementById(
+                                              "education-scroll"
+                                            );
+                                          if (container)
+                                            container.scrollLeft += 300;
+                                        }}
+                                      >
+                                        <img
+                                          src={arrowright}
+                                          alt="Next"
+                                          className="w-4 h-4"
+                                        />
+                                      </button>
+                                    )}
+
+                                    <ol
+                                      id="education-scroll"
+                                      className="flex overflow-x-hidden no-scrollbar scroll-smooth"
+                                    >
+                                      {userDetails?.educations.map(
+                                        (edu: any, index: number) => (
+                                          <li
+                                            key={index}
+                                            className="relative flex-none w-72 mb-6 mr-8 last:mr-0"
+                                          >
+                                            <div className="flex items-center">
+                                              <div className="z-10 flex items-center justify-center w-12 h-12 bg-white rounded-full ring-0 ring-white sm:ring-8 shrink-0 overflow-hidden border-2 border-gray-100">
+                                                <img
+                                                  src={edu.logo || education}
+                                                  alt={`${edu.institution} logo`}
+                                                  className="w-12 h-12 object-cover"
+                                                />
+                                              </div>
+                                              {index <
+                                                educationData.length - 1 && (
+                                                  <div className="hidden sm:flex w-full bg-gray-200 h-0.5"></div>
+                                                )}
                                             </div>
-                                            {index <
-                                              educationData.length - 1 && (
-                                              <div className="hidden sm:flex w-full bg-gray-200 h-0.5"></div>
-                                            )}
+                                            <div className="mt-3 sm:pe-8 relative">
+                                              {isEditMode && (
+                                                <button
+                                                  onClick={() => {
+                                                    setEditingEducation(edu);
+                                                    setIsEducationFormOpen(true);
+                                                  }}
+                                                  className="absolute right-0 -top-12 p-1  bg-gray-100 rounded-full hover:bg-gray-200"
+                                                >
+                                                  <img
+                                                    src={edit}
+                                                    alt="Edit"
+                                                    className="w-3  h-3"
+                                                  />
+                                                </button>
+                                              )}
+                                              <h3 className="text-sm w-72 overflow-hidden text-ellipsis whitespace-wrap font-normal text-gray-900">
+                                                {edu.schoolName}
+                                              </h3>
+                                              <p className="text-xs font-light text-gray-900 line-clamp-1">
+                                                {edu.degree}
+                                              </p>
+                                              <p className="text-xs  text-gray-900 line-clamp-1">
+                                                {edu.department}
+                                              </p>
+                                              <time className="block text-xs font-normal text-gray-900">
+                                                {edu.startDate}
+                                              </time>
+                                              <p className="text-xs font-light text-gray-900 line-clamp-1">
+                                                {edu.grade}
+                                              </p>
+                                            </div>
+                                          </li>
+                                        )
+                                      )}
+                                    </ol>
+                                  </div>
+
+                                  {/* Mobile View */}
+                                  <div className="lg:hidden flex flex-col space-y-8">
+                                    {userDetails?.educations
+                                      ?.slice(
+                                        0,
+                                        expanded ? educationData.length : 3
+                                      )
+                                      .map((edu: any, index: number) => (
+                                        <div
+                                          key={index}
+                                          className="flex items-start gap-4"
+                                        >
+                                          <div className="flex-shrink-0">
+                                            <img
+                                              src={edu.logo || education}
+                                              alt={`${edu.institution} logo`}
+                                              className="w-12 h-12 rounded-full border-2 border-gray-100"
+                                            />
                                           </div>
-                                          <div className="mt-3 sm:pe-8 relative">
+                                          <div className="flex-grow relative">
                                             {isEditMode && (
                                               <button
                                                 onClick={() => {
                                                   setEditingEducation(edu);
                                                   setIsEducationFormOpen(true);
                                                 }}
-                                                className="absolute right-0 -top-12 p-1  bg-gray-100 rounded-full hover:bg-gray-200"
+                                                className="absolute right-0 top-0 p-1 bg-gray-100 rounded-full hover:bg-gray-200"
                                               >
                                                 <img
                                                   src={edit}
                                                   alt="Edit"
-                                                  className="w-3  h-3"
+                                                  className="w-3 h-3"
                                                 />
                                               </button>
                                             )}
-                                            <h3 className="text-sm w-72 overflow-hidden text-ellipsis whitespace-wrap font-normal text-gray-900">
+                                            <h3 className="text-sm font-normal text-gray-900">
                                               {edu.schoolName}
                                             </h3>
-                                            <p className="text-xs font-light text-gray-900 line-clamp-1">
+                                            <p className="text-xs font-light text-gray-600 line-clamp-1 ">
                                               {edu.degree}
                                             </p>
-                                            <p className="text-xs  text-gray-900 line-clamp-1">
+                                            <p className="text-xs  text-gray-700 line-clamp-1">
                                               {edu.department}
                                             </p>
-                                            <time className="block text-xs font-normal text-gray-900">
-                                              {edu.startDate}
-                                            </time>
-                                            <p className="text-xs font-light text-gray-900 line-clamp-1">
+                                            <p className="text-xs font-light text-gray-700 line-clamp-1">
                                               {edu.grade}
                                             </p>
+                                            <time className="block text-xs font-normal text-gray-500">
+                                              {edu.startDate}
+                                            </time>
                                           </div>
-                                        </li>
-                                      )
-                                    )}
-                                  </ol>
-                                </div>
+                                        </div>
+                                      ))}
 
-                                {/* Mobile View */}
-                                <div className="lg:hidden flex flex-col space-y-8">
-                                  {userDetails?.educations
-                                    ?.slice(
-                                      0,
-                                      expanded ? educationData.length : 3
-                                    )
-                                    .map((edu: any, index: number) => (
-                                      <div
-                                        key={index}
-                                        className="flex items-start gap-4"
+                                    {/* Show "See all" button only on mobile if more than 3 items */}
+                                    {userDetails?.educations?.length > 3 && (
+                                      <button
+                                        onClick={() => setExpanded(!expanded)}
+                                        className="text-fillc text-sm font-medium flex items-center gap-1 lg:hidden"
                                       >
-                                        <div className="flex-shrink-0">
-                                          <img
-                                            src={edu.logo || education}
-                                            alt={`${edu.institution} logo`}
-                                            className="w-12 h-12 rounded-full border-2 border-gray-100"
-                                          />
-                                        </div>
-                                        <div className="flex-grow relative">
-                                          {isEditMode && (
-                                            <button
-                                              onClick={() => {
-                                                setEditingEducation(edu);
-                                                setIsEducationFormOpen(true);
-                                              }}
-                                              className="absolute right-0 top-0 p-1 bg-gray-100 rounded-full hover:bg-gray-200"
-                                            >
-                                              <img
-                                                src={edit}
-                                                alt="Edit"
-                                                className="w-3 h-3"
-                                              />
-                                            </button>
-                                          )}
-                                          <h3 className="text-sm font-normal text-gray-900">
-                                            {edu.schoolName}
-                                          </h3>
-                                          <p className="text-xs font-light text-gray-600 line-clamp-1 ">
-                                            {edu.degree}
-                                          </p>
-                                          <p className="text-xs  text-gray-700 line-clamp-1">
-                                            {edu.department}
-                                          </p>
-                                          <p className="text-xs font-light text-gray-700 line-clamp-1">
-                                            {edu.grade}
-                                          </p>
-                                          <time className="block text-xs font-normal text-gray-500">
-                                            {edu.startDate}
-                                          </time>
-                                        </div>
-                                      </div>
-                                    ))}
-
-                                  {/* Show "See all" button only on mobile if more than 3 items */}
-                                  {userDetails?.educations?.length > 3 && (
-                                    <button
-                                      onClick={() => setExpanded(!expanded)}
-                                      className="text-fillc text-sm font-medium flex items-center gap-1 lg:hidden"
-                                    >
-                                      {expanded
-                                        ? "Show Less"
-                                        : "See all Education"}
-                                      <img
-                                        src={arrowright}
-                                        alt=""
-                                        className={`transform ${
-                                          expanded ? "rotate-180" : ""
-                                        } w-4 h-4`}
-                                      />
-                                    </button>
-                                  )}
-                                </div>
-                              </>
-                            )}
+                                        {expanded
+                                          ? "Show Less"
+                                          : "See all Education"}
+                                        <img
+                                          src={arrowright}
+                                          alt=""
+                                          className={`transform ${expanded ? "rotate-180" : ""
+                                            } w-4 h-4`}
+                                        />
+                                      </button>
+                                    )}
+                                  </div>
+                                </>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                        {/* Education Form */}
-                        {isEducationFormOpen && (
-                          <EducationForm
-                            isOpen={isEducationFormOpen}
-                            onClose={() => {
-                              setIsEducationFormOpen(false);
-                              setEditingEducation(null);
-                            }}
-                            onSubmit={(data) => {
-                              if (editingEducation) {
-                                // Update existing education
-                                const updatedEducation = educationData.map(
-                                  (edu) =>
-                                    edu.id === editingEducation.id
-                                      ? {
+                          {/* Education Form */}
+                          {isEducationFormOpen && (
+                            <EducationForm
+                              isOpen={isEducationFormOpen}
+                              onClose={() => {
+                                setIsEducationFormOpen(false);
+                                setEditingEducation(null);
+                              }}
+                              onSubmit={(data) => {
+                                if (editingEducation) {
+                                  // Update existing education
+                                  const updatedEducation = educationData.map(
+                                    (edu) =>
+                                      edu.id === editingEducation.id
+                                        ? {
                                           ...edu,
                                           schoolName: data.schoolName,
                                           degree: data.degree,
@@ -1828,40 +1807,40 @@ const Profile: React.FC = () => {
                                               ? URL.createObjectURL(data.logo)
                                               : edu.logo,
                                         }
-                                      : edu
-                                );
-                                setEducationData(updatedEducation);
-                                handleAddEducations(data, editingEducation);
-                              } else {
-                                // Add new education
-                                const logoUrl =
-                                  data.logo instanceof File
-                                    ? URL.createObjectURL(data.logo)
-                                    : data.logo ||
+                                        : edu
+                                  );
+                                  setEducationData(updatedEducation);
+                                  handleAddEducations(data, editingEducation);
+                                } else {
+                                  // Add new education
+                                  const logoUrl =
+                                    data.logo instanceof File
+                                      ? URL.createObjectURL(data.logo)
+                                      : data.logo ||
                                       "https://cdn.builder.io/api/v1/image/assets/TEMP/e6f21b8e48966c867e6781375245b708b2595a844a18bfe5cb5ae20e42019372";
 
-                                const newEducation: Education = {
-                                  id: Date.now(),
-                                  schoolName: data.schoolName || "",
-                                  degree: data.degree || "",
-                                  department: data.department || "",
-                                  startDate: data.startDate || "",
-                                  grade: data.grade || "",
-                                  logo: logoUrl,
-                                };
-                                setEducationData([
-                                  ...educationData,
-                                  newEducation,
-                                ]);
+                                  const newEducation: Education = {
+                                    id: Date.now(),
+                                    schoolName: data.schoolName || "",
+                                    degree: data.degree || "",
+                                    department: data.department || "",
+                                    startDate: data.startDate || "",
+                                    grade: data.grade || "",
+                                    logo: logoUrl,
+                                  };
+                                  setEducationData([
+                                    ...educationData,
+                                    newEducation,
+                                  ]);
 
-                                handleAddEducations(data, editingEducation);
-                              }
-                              setIsEducationFormOpen(false);
-                              setEditingEducation(null);
-                            }}
-                            initialData={
-                              editingEducation
-                                ? {
+                                  handleAddEducations(data, editingEducation);
+                                }
+                                setIsEducationFormOpen(false);
+                                setEditingEducation(null);
+                              }}
+                              initialData={
+                                editingEducation
+                                  ? {
                                     schoolName:
                                       editingEducation.schoolName ?? "",
                                     degree: editingEducation.degree ?? "",
@@ -1872,35 +1851,173 @@ const Profile: React.FC = () => {
                                     logo: editingEducation.logo ?? "",
                                     notifyFollowers: false,
                                   }
-                                : undefined
-                            }
-                            isEditing={!!editingEducation}
-                            key={
-                              editingEducation
-                                ? editingEducation.schoolName
-                                : "new-education"
-                            }
-                          />
-                        )}
+                                  : undefined
+                              }
+                              isEditing={!!editingEducation}
+                              key={
+                                editingEducation
+                                  ? editingEducation.schoolName
+                                  : "new-education"
+                              }
+                            />
+                          )}
 
-                        <div
-                          className={`flex flex-col mt-3 lg:flex-row gap-3 lg:gap-6 ${
-                            activeTab === "about" || activeTab === "About"
-                              ? "block"
-                              : "hidden lg:block"
-                          }`}
-                        >
-                          {/* Areas of Interest Card */}
-                          <div className="w-full lg:w-1/2 flex flex-col justify-between bg-white rounded-xl p-6">
-                            <div>
+                          <div
+                            className={`flex flex-col mt-3 lg:flex-row gap-3 lg:gap-6 ${activeTab === "about" || activeTab === "About"
+                                ? "block"
+                                : "hidden lg:block"
+                              }`}
+                          >
+                            {/* Areas of Interest Card */}
+                            <div className="w-full lg:w-1/2 flex flex-col justify-between bg-white rounded-xl p-6">
+                              <div>
+                                <div className="flex justify-between items-center mb-4">
+                                  <h2 className="text-lg font-medium">Skills</h2>
+                                  <div className="flex gap-4">
+                                    <button
+                                      onClick={() =>
+                                        setShowInterestEditButtons(
+                                          !showInterestEditButtons
+                                        )
+                                      }
+                                      className="text-gray-500 hover:text-blue-500"
+                                    >
+                                      <img src={edit} alt="" />
+                                    </button>
+                                    <button
+                                      onClick={() => {
+                                        setEditingInterest(null); // Clear any existing editing interest
+                                        setIsAddInterestFormOpen(true);
+                                      }}
+                                      className="flex items-center space-x-1 bg-maincl text-white px-1 py-1 rounded-full hover:bg-fillc text-sm"
+                                    >
+                                      <FaPlus className="w-3 h-3" />
+                                    </button>
+                                  </div>
+                                </div>
+
+                                {/* Interest List */}
+                                {userDetails?.skills?.length === 0 ? (
+                                  <div className="text-center py-8">
+                                    <p className="text-gray-600 text-sm">
+                                      Adding your skills will help showcase your
+                                      expertise and strengths, making your profile
+                                      more personalized and impactful!
+                                    </p>
+                                  </div>
+                                ) : (
+                                  <ul className="space-y-3">
+                                    {userDetails?.skills
+                                      ?.slice(
+                                        0,
+                                        interestsexpanded
+                                          ? userDetails?.skills?.length
+                                          : 4
+                                      )
+                                      .map((interest: any, index: number) => (
+                                        <li
+                                          key={index}
+                                          className="border-b py-2 last:border-none"
+                                        >
+                                          <div className="flex justify-between items-center">
+                                            <p className="text-sm text-gray-600">
+                                              {interest.skill}
+                                            </p>
+                                            {showInterestEditButtons && (
+                                              <button
+                                                onClick={() => {
+                                                  setEditingInterest({
+                                                    id: interest.id,
+                                                    skill: interest.skill,
+                                                  });
+                                                  setIsAddInterestFormOpen(true);
+                                                }}
+                                                className="text-gray-400 hover:text-gray-600"
+                                              >
+                                                <img
+                                                  src={edit}
+                                                  alt="Edit"
+                                                  className="w-4 h-4"
+                                                />
+                                              </button>
+                                            )}
+                                          </div>
+                                        </li>
+                                      ))}
+                                  </ul>
+                                )}
+                              </div>
+
+                              {/* Footer Link - Only show if there are more than 4 interests */}
+                              {userDetails?.skills.length > 4 && (
+                                <button
+                                  onClick={() =>
+                                    setInterestsExpanded(!interestsexpanded)
+                                  }
+                                  className="mt-4 text-blue-600 text-sm font-medium cursor-pointer flex items-center gap-1"
+                                >
+                                  {interestsexpanded ? "Show Less" : "See Skills"}{" "}
+                                  →
+                                </button>
+                              )}
+                            </div>
+                            <InterestForm
+                              isOpen={isAddInterestFormOpen}
+                              onClose={() => {
+                                setIsAddInterestFormOpen(false);
+                                setEditingInterest(null);
+                              }}
+                              onSubmit={(data: InterestFormData) => {
+                                if (editingInterest) {
+                                  // Update existing interest
+                                  const updatedInterests = interestsData.map(
+                                    (interest) =>
+                                      interest.id === editingInterest.id
+                                        ? { ...interest, skill: data.skill }
+                                        : interest
+                                  );
+                                  setInterestsData(updatedInterests);
+                                  handleaddskills(data, editingInterest);
+                                } else {
+                                  // Add new interest
+                                  const newInterest = {
+                                    id: String(Date.now()),
+                                    skill: data.skill,
+                                  };
+                                  setInterestsData((prevInterests) => [
+                                    ...prevInterests,
+                                    newInterest,
+                                  ]);
+                                  handleaddskills(data, editingInterest);
+                                }
+                                setIsAddInterestFormOpen(false);
+                                setEditingInterest(null);
+                              }}
+                              initialData={{
+                                skill: editingInterest
+                                  ? editingInterest.skill
+                                  : "",
+                                notifyFollowers: false,
+                              }}
+                              isEditing={!!editingInterest}
+                              key={editingInterest ? editingInterest.id : "new"}
+                            />
+
+                            {/* Licenses and Certification Card */}
+                            <div
+                              className={`w-full lg:w-1/2 bg-white  rounded-xl p-6 ${activeTab === "about" || activeTab === "About"
+                                  ? "block"
+                                  : "hidden lg:block"
+                                }`}
+                            >
                               <div className="flex justify-between items-center mb-4">
-                                <h2 className="text-lg font-medium">Skills</h2>
+                                <h2 className="text-lg font-medium">
+                                  Licenses and Certification
+                                </h2>
                                 <div className="flex gap-4">
                                   <button
                                     onClick={() =>
-                                      setShowInterestEditButtons(
-                                        !showInterestEditButtons
-                                      )
+                                      setShowCertEditButtons(!showCertEditButtons)
                                     }
                                     className="text-gray-500 hover:text-blue-500"
                                   >
@@ -1908,8 +2025,8 @@ const Profile: React.FC = () => {
                                   </button>
                                   <button
                                     onClick={() => {
-                                      setEditingInterest(null); // Clear any existing editing interest
-                                      setIsAddInterestFormOpen(true);
+                                      setEditingCertification(null);
+                                      setIsCertificationFormOpen(true);
                                     }}
                                     className="flex items-center space-x-1 bg-maincl text-white px-1 py-1 rounded-full hover:bg-fillc text-sm"
                                   >
@@ -1918,41 +2035,295 @@ const Profile: React.FC = () => {
                                 </div>
                               </div>
 
-                              {/* Interest List */}
-                              {userDetails?.skills?.length === 0 ? (
+                              {/* Certification List */}
+                              {userDetails?.certificates.length === 0 ? (
                                 <div className="text-center py-8">
                                   <p className="text-gray-600 text-sm">
-                                    Adding your skills will help showcase your
-                                    expertise and strengths, making your profile
-                                    more personalized and impactful!
+                                    Including your licenses and certifications
+                                    highlights your expertise and qualifications,
+                                    boosting your profile's credibility and
+                                    professionalism.
                                   </p>
                                 </div>
                               ) : (
-                                <ul className="space-y-3">
-                                  {userDetails?.skills
-                                    ?.slice(
-                                      0,
-                                      interestsexpanded
-                                        ? userDetails?.skills?.length
-                                        : 4
-                                    )
-                                    .map((interest: any, index: number) => (
-                                      <li
-                                        key={index}
-                                        className="border-b py-2 last:border-none"
+                                <>
+                                  <ul className="space-y-4">
+                                    {userDetails?.certificates
+                                      ?.slice(
+                                        0,
+                                        showAllCertifications
+                                          ? certificationData.length
+                                          : 2
+                                      )
+                                      .map((cert: any) => (
+                                        <li
+                                          key={cert.id}
+                                          className="border-b pb-2 last:border-none"
+                                        >
+                                          <div className="flex items-start gap-4 relative">
+                                            <div className="w-12 h-12 bg-gray-200 rounded-full">
+                                              <img
+                                                src={cert.logo || experience}
+                                                alt={cert.title}
+                                                className="w-full h-full rounded-full"
+                                              />
+                                            </div>
+                                            <div className="flex-1">
+                                              <div className="flex justify-between items-start">
+                                                <div>
+                                                  <p className="font-normal text-sm line-clamp-1">
+                                                    {cert.certificateName}
+                                                  </p>
+                                                  <p className="text-xs font-normal text-gray-700 line-clamp-1">
+                                                    {cert.issuingOrganisation}
+                                                  </p>
+                                                  <p className="text-xs text-gray-700">
+                                                    Issued: {cert.issueDate}
+                                                  </p>
+                                                  <button className="mt-2 px-2 py-1 border text-xs rounded-3xl text-maincl border-gray-200 hover:bg-blue-50">
+                                                    Show Credential
+                                                  </button>
+                                                </div>
+                                                {showCertEditButtons && (
+                                                  <button
+                                                    onClick={() => {
+                                                      setEditingCertification(
+                                                        cert
+                                                      );
+                                                      setIsCertificationFormOpen(
+                                                        true
+                                                      );
+                                                    }}
+                                                    className="text-gray-400 hover:text-gray-600"
+                                                  >
+                                                    <img
+                                                      src={edit}
+                                                      alt="Edit"
+                                                      className="w-4 h-4"
+                                                    />
+                                                  </button>
+                                                )}
+                                              </div>
+                                            </div>
+                                          </div>
+                                        </li>
+                                      ))}
+                                  </ul>
+
+                                  {/* Footer Link - Only show if there are more than 2 certifications */}
+                                  {userDetails?.certificates.length > 2 && (
+                                    <button
+                                      onClick={() =>
+                                        setShowAllCertifications(
+                                          !showAllCertifications
+                                        )
+                                      }
+                                      className="mt-4 text-blue-600 text-sm font-medium cursor-pointer flex items-center gap-1"
+                                    >
+                                      {showAllCertifications
+                                        ? "Show Less"
+                                        : "See all Licenses and Certification"}{" "}
+                                      →
+                                    </button>
+                                  )}
+                                </>
+                              )}
+                            </div>
+                          </div>
+                          {/* Certification Form */}
+                          <CertificationForm
+                            isOpen={isCertificationFormOpen}
+                            onClose={() => {
+                              setIsCertificationFormOpen(false);
+                              setEditingCertification(null);
+                            }}
+                            onSubmit={(data: CertificationFormData) => {
+                              if (editingCertification) {
+                                // Update existing certification
+                                const updatedCertifications =
+                                  certificationData.map((cert) =>
+                                    cert.id === editingCertification.id
+                                      ? {
+                                        ...cert,
+                                        certificateName: data.certificateName,
+                                        issuingOrganisation:
+                                          data.issuingOrganisation,
+                                        issueDate: data.issueDate,
+                                        logo:
+                                          data.logo instanceof File
+                                            ? URL.createObjectURL(data.logo)
+                                            : cert.logo,
+                                      }
+                                      : cert
+                                  );
+                                setCertificationData(updatedCertifications);
+                                handleaddCertificate(data, editingCertification);
+                              } else {
+                                // Add new certification
+                                const newCertification = {
+                                  id: String(Date.now()),
+                                  certificateName: data.certificateName,
+                                  issuingOrganisation: data.issuingOrganisation,
+                                  issueDate: data.issueDate,
+                                  logo:
+                                    data.logo instanceof File
+                                      ? URL.createObjectURL(data.logo)
+                                      : "https://cdn.builder.io/api/v1/image/assets/TEMP/e6f21b8e48966c867e6781375245b708b2595a844a18bfe5cb5ae20e42019372",
+                                };
+                                setCertificationData([
+                                  ...certificationData,
+                                  newCertification,
+                                ]);
+                                handleaddCertificate(data, editingCertification);
+                              }
+                              setIsCertificationFormOpen(false);
+                              setEditingCertification(null);
+                            }}
+                            initialData={
+                              editingCertification
+                                ? {
+                                  certificateName:
+                                    editingCertification.certificateName,
+                                  issuingOrganisation:
+                                    editingCertification.issuingOrganisation,
+                                  issueDate: editingCertification.issueDate,
+                                  logo: editingCertification.logo,
+                                  notifyFollowers: false,
+                                }
+                                : undefined
+                            }
+                            isEditing={!!editingCertification}
+                          />
+
+                          {/* Memberships */}
+                          <div
+                            className={`bg-white rounded-xl py-8 lg:px-6 px-4 mt-3 ${activeTab === "memberships" ||
+                                activeTab === "Memberships"
+                                ? "block"
+                                : "hidden lg:block"
+                              }`}
+                          >
+                            <div className="flex justify-between items-center mb-6">
+                              <h2 className="text-lg font-medium">Memberships</h2>
+                              <div className="flex gap-4">
+                                <button
+                                  onClick={() =>
+                                    setShowEditButtons(!showEditButtons)
+                                  }
+                                  className="text-gray-400 hover:text-gray-600"
+                                >
+                                  <img src={edit} alt="" />
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    setEditingMembership(null); // Clear any existing editing membership
+                                    setIsAddMembershipFormOpen(true);
+                                  }}
+                                  className="flex items-center space-x-1 bg-maincl text-white px-1 py-1 rounded-full hover:bg-fillc text-sm"
+                                >
+                                  <FaPlus className="w-3 h-3" />
+                                </button>
+                              </div>
+                            </div>
+
+                            {/* Membership List */}
+                            {userDetails?.memberships.length === 0 ? (
+                              <div className="text-center py-8">
+                                <p className="text-gray-600 text-sm">
+                                  Adding your memberships will showcase your
+                                  professional affiliations and involvement,
+                                  helping to strengthen your profile and
+                                  credibility!
+                                </p>
+                              </div>
+                            ) : (
+                              <div className="relative group">
+                                {/* Scroll buttons - Only show on desktop */}
+                                {!isMobile &&
+                                  userDetails?.memberships.length > 4 && (
+                                    <>
+                                      <button
+                                        className="absolute left-0 top-1/2 z-10 -translate-y-1/2 bg-gray-200 p-2 rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
+                                        onClick={() => {
+                                          const container =
+                                            document.getElementById(
+                                              "memberships-scroll"
+                                            );
+                                          if (container) {
+                                            container.scrollLeft -= 200;
+                                          }
+                                        }}
                                       >
-                                        <div className="flex justify-between items-center">
-                                          <p className="text-sm text-gray-600">
-                                            {interest.skill}
-                                          </p>
-                                          {showInterestEditButtons && (
+                                        <img
+                                          src={arrowright}
+                                          alt="Previous"
+                                          className="w-4 h-4 transform rotate-180"
+                                        />
+                                      </button>
+
+                                      <button
+                                        className="absolute right-0 top-1/2 z-10 -translate-y-1/2 bg-gray-200 p-2 rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
+                                        onClick={() => {
+                                          const container =
+                                            document.getElementById(
+                                              "memberships-scroll"
+                                            );
+                                          if (container) {
+                                            container.scrollLeft += 200;
+                                          }
+                                        }}
+                                      >
+                                        <img
+                                          src={arrowright}
+                                          alt="Next"
+                                          className="w-4 h-4"
+                                        />
+                                      </button>
+                                    </>
+                                  )}
+
+                                {/* Content container with different layouts for mobile and desktop */}
+                                <div
+                                  id="memberships-scroll"
+                                  className={`${isMobile
+                                      ? "flex flex-col space-y-4"
+                                      : "overflow-x-hidden no-scrollbar scrollbar-hide scroll-smooth"
+                                    }`}
+                                >
+                                  <div
+                                    className={`${isMobile ? "space-y-4" : "flex gap-6"
+                                      }`}
+                                  >
+                                    {userDetails?.memberships.map(
+                                      (membership: any) => (
+                                        <div
+                                          key={membership.id}
+                                          className={`flex items-center  justify-between pb-4 border-b   ${!isMobile && " min-w-[200px] "
+                                            }`}
+                                        >
+                                          <div className="flex items-center gap-3">
+                                            <img
+                                              src={membershipIcon}
+                                              alt={membership.name}
+                                              className="w-10 h-10 rounded-full"
+                                            />
+                                            <div>
+                                              <p className="font-medium text-sm">
+                                                {membership.societyname}
+                                              </p>
+                                              <p className=" text-xs text-gray-500">
+                                                {membership.relatedDepartment}
+                                              </p>
+                                              <p className="text-xs text-gray-500">
+                                                {membership.position}
+                                              </p>
+                                            </div>
+                                          </div>
+                                          {showEditButtons && (
                                             <button
                                               onClick={() => {
-                                                setEditingInterest({
-                                                  id: interest.id,
-                                                  skill: interest.skill,
-                                                });
-                                                setIsAddInterestFormOpen(true);
+                                                setEditingMembership(membership);
+                                                setIsAddMembershipFormOpen(true);
                                               }}
                                               className="text-gray-400 hover:text-gray-600"
                                             >
@@ -1964,92 +2335,95 @@ const Profile: React.FC = () => {
                                             </button>
                                           )}
                                         </div>
-                                      </li>
-                                    ))}
-                                </ul>
-                              )}
-                            </div>
-
-                            {/* Footer Link - Only show if there are more than 4 interests */}
-                            {userDetails?.skills.length > 4 && (
-                              <button
-                                onClick={() =>
-                                  setInterestsExpanded(!interestsexpanded)
-                                }
-                                className="mt-4 text-blue-600 text-sm font-medium cursor-pointer flex items-center gap-1"
-                              >
-                                {interestsexpanded ? "Show Less" : "See Skills"}{" "}
-                                →
-                              </button>
+                                      )
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
                             )}
                           </div>
-                          <InterestForm
-                            isOpen={isAddInterestFormOpen}
-                            onClose={() => {
-                              setIsAddInterestFormOpen(false);
-                              setEditingInterest(null);
-                            }}
-                            onSubmit={(data: InterestFormData) => {
-                              if (editingInterest) {
-                                // Update existing interest
-                                const updatedInterests = interestsData.map(
-                                  (interest) =>
-                                    interest.id === editingInterest.id
-                                      ? { ...interest, skill: data.skill }
-                                      : interest
-                                );
-                                setInterestsData(updatedInterests);
-                                handleaddskills(data, editingInterest);
-                              } else {
-                                // Add new interest
-                                const newInterest = {
-                                  id: String(Date.now()),
-                                  skill: data.skill,
-                                };
-                                setInterestsData((prevInterests) => [
-                                  ...prevInterests,
-                                  newInterest,
-                                ]);
-                                handleaddskills(data, editingInterest);
-                              }
-                              setIsAddInterestFormOpen(false);
-                              setEditingInterest(null);
-                            }}
-                            initialData={{
-                              skill: editingInterest
-                                ? editingInterest.skill
-                                : "",
-                              notifyFollowers: false,
-                            }}
-                            isEditing={!!editingInterest}
-                            key={editingInterest ? editingInterest.id : "new"}
-                          />
+                          {/* Membership Form Modal */}
+                          {isAddMembershipFormOpen && (
+                            <MembershipForm
+                              isOpen={isAddMembershipFormOpen}
+                              onClose={() => {
+                                setIsAddMembershipFormOpen(false);
+                                setEditingMembership(null);
+                              }}
+                              onSubmit={(data: MembershipFormData) => {
+                                if (editingMembership) {
+                                  // Update existing membership
+                                  const updatedMemberships = memberships.map(
+                                    (membership) =>
+                                      membership.id === editingMembership.id
+                                        ? {
+                                          ...membership,
+                                          name: data.name,
+                                          category: data.category,
+                                          position: data.position,
+                                          membershipId: data.membershipId,
+                                          // Keep the existing image if no new file is provided
+                                        }
+                                        : membership
+                                  );
 
-                          {/* Licenses and Certification Card */}
+                                  setMemberships(updatedMemberships);
+                                  handleaddMemberships(data, editingMembership);
+                                } else {
+                                  // Add new membership
+                                  const newMembership: Membership = {
+                                    id: Date.now(),
+                                    name: data.name,
+                                    category: data.category,
+                                    position: data.position,
+                                    membershipId: data.membershipId,
+                                  };
+                                  setMemberships([...memberships, newMembership]);
+                                  handleaddMemberships(data, editingMembership);
+                                }
+                                setIsAddMembershipFormOpen(false);
+                                setEditingMembership(null);
+                              }}
+                              initialData={
+                                editingMembership
+                                  ? {
+                                    name: editingMembership.name || "",
+                                    category: editingMembership.category || "",
+                                    position: editingMembership.position || "",
+                                    membershipId:
+                                      editingMembership.membershipId || "",
+                                    notifyFollowers: false,
+                                  }
+                                  : undefined
+                              }
+                              isEditing={!!editingMembership}
+                            />
+                          )}
+
+                          {/* Awards and Achievements */}
                           <div
-                            className={`w-full lg:w-1/2 bg-white  rounded-xl p-6 ${
-                              activeTab === "about" || activeTab === "About"
+                            className={`bg-white rounded-xl p-6 mt-3 ${activeTab === "about" || activeTab === "About"
                                 ? "block"
                                 : "hidden lg:block"
-                            }`}
+                              }`}
                           >
                             <div className="flex justify-between items-center mb-4">
                               <h2 className="text-lg font-medium">
-                                Licenses and Certification
+                                Awards and Achievements
                               </h2>
                               <div className="flex gap-4">
                                 <button
                                   onClick={() =>
-                                    setShowCertEditButtons(!showCertEditButtons)
+                                    setShowEditButtons(!showEditButtons)
                                   }
-                                  className="text-gray-500 hover:text-blue-500"
+                                  className="text-gray-400 hover:text-gray-600"
                                 >
-                                  <img src={edit} alt="" />
+                                  <img src={edit} alt="" /> {/* Edit Icon */}
                                 </button>
                                 <button
                                   onClick={() => {
-                                    setEditingCertification(null);
-                                    setIsCertificationFormOpen(true);
+                                    setEditingAward(null); // Clear any existing editing award
+                                    setIsAwardFormOpen(true);
                                   }}
                                   className="flex items-center space-x-1 bg-maincl text-white px-1 py-1 rounded-full hover:bg-fillc text-sm"
                                 >
@@ -2058,525 +2432,123 @@ const Profile: React.FC = () => {
                               </div>
                             </div>
 
-                            {/* Certification List */}
-                            {userDetails?.certificates.length === 0 ? (
-                              <div className="text-center py-8">
-                                <p className="text-gray-600 text-sm">
-                                  Including your licenses and certifications
-                                  highlights your expertise and qualifications,
-                                  boosting your profile's credibility and
-                                  professionalism.
-                                </p>
-                              </div>
-                            ) : (
-                              <>
-                                <ul className="space-y-4">
-                                  {userDetails?.certificates
-                                    ?.slice(
-                                      0,
-                                      showAllCertifications
-                                        ? certificationData.length
-                                        : 2
-                                    )
-                                    .map((cert: any) => (
-                                      <li
-                                        key={cert.id}
-                                        className="border-b pb-2 last:border-none"
-                                      >
-                                        <div className="flex items-start gap-4 relative">
-                                          <div className="w-12 h-12 bg-gray-200 rounded-full">
-                                            <img
-                                              src={cert.logo || experience}
-                                              alt={cert.title}
-                                              className="w-full h-full rounded-full"
-                                            />
-                                          </div>
-                                          <div className="flex-1">
-                                            <div className="flex justify-between items-start">
-                                              <div>
-                                                <p className="font-normal text-sm line-clamp-1">
-                                                  {cert.certificateName}
-                                                </p>
-                                                <p className="text-xs font-normal text-gray-700 line-clamp-1">
-                                                  {cert.issuingOrganisation}
-                                                </p>
-                                                <p className="text-xs text-gray-700">
-                                                  Issued: {cert.issueDate}
-                                                </p>
-                                                <button className="mt-2 px-2 py-1 border text-xs rounded-3xl text-maincl border-gray-200 hover:bg-blue-50">
-                                                  Show Credential
-                                                </button>
-                                              </div>
-                                              {showCertEditButtons && (
-                                                <button
-                                                  onClick={() => {
-                                                    setEditingCertification(
-                                                      cert
-                                                    );
-                                                    setIsCertificationFormOpen(
-                                                      true
-                                                    );
-                                                  }}
-                                                  className="text-gray-400 hover:text-gray-600"
-                                                >
-                                                  <img
-                                                    src={edit}
-                                                    alt="Edit"
-                                                    className="w-4 h-4"
-                                                  />
-                                                </button>
-                                              )}
-                                            </div>
-                                          </div>
-                                        </div>
-                                      </li>
-                                    ))}
-                                </ul>
-
-                                {/* Footer Link - Only show if there are more than 2 certifications */}
-                                {userDetails?.certificates.length > 2 && (
-                                  <button
-                                    onClick={() =>
-                                      setShowAllCertifications(
-                                        !showAllCertifications
-                                      )
-                                    }
-                                    className="mt-4 text-blue-600 text-sm font-medium cursor-pointer flex items-center gap-1"
-                                  >
-                                    {showAllCertifications
-                                      ? "Show Less"
-                                      : "See all Licenses and Certification"}{" "}
-                                    →
-                                  </button>
-                                )}
-                              </>
-                            )}
-                          </div>
-                        </div>
-                        {/* Certification Form */}
-                        <CertificationForm
-                          isOpen={isCertificationFormOpen}
-                          onClose={() => {
-                            setIsCertificationFormOpen(false);
-                            setEditingCertification(null);
-                          }}
-                          onSubmit={(data: CertificationFormData) => {
-                            if (editingCertification) {
-                              // Update existing certification
-                              const updatedCertifications =
-                                certificationData.map((cert) =>
-                                  cert.id === editingCertification.id
-                                    ? {
-                                        ...cert,
-                                        certificateName: data.certificateName,
-                                        issuingOrganisation:
-                                          data.issuingOrganisation,
-                                        issueDate: data.issueDate,
-                                        logo:
-                                          data.logo instanceof File
-                                            ? URL.createObjectURL(data.logo)
-                                            : cert.logo,
-                                      }
-                                    : cert
-                                );
-                              setCertificationData(updatedCertifications);
-                              handleaddCertificate(data, editingCertification);
-                            } else {
-                              // Add new certification
-                              const newCertification = {
-                                id: String(Date.now()),
-                                certificateName: data.certificateName,
-                                issuingOrganisation: data.issuingOrganisation,
-                                issueDate: data.issueDate,
-                                logo:
-                                  data.logo instanceof File
-                                    ? URL.createObjectURL(data.logo)
-                                    : "https://cdn.builder.io/api/v1/image/assets/TEMP/e6f21b8e48966c867e6781375245b708b2595a844a18bfe5cb5ae20e42019372",
-                              };
-                              setCertificationData([
-                                ...certificationData,
-                                newCertification,
-                              ]);
-                              handleaddCertificate(data, editingCertification);
-                            }
-                            setIsCertificationFormOpen(false);
-                            setEditingCertification(null);
-                          }}
-                          initialData={
-                            editingCertification
-                              ? {
-                                  certificateName:
-                                    editingCertification.certificateName,
-                                  issuingOrganisation:
-                                    editingCertification.issuingOrganisation,
-                                  issueDate: editingCertification.issueDate,
-                                  logo: editingCertification.logo,
-                                  notifyFollowers: false,
-                                }
-                              : undefined
-                          }
-                          isEditing={!!editingCertification}
-                        />
-
-                        {/* Memberships */}
-                        <div
-                          className={`bg-white rounded-xl py-8 lg:px-6 px-4 mt-3 ${
-                            activeTab === "memberships" ||
-                            activeTab === "Memberships"
-                              ? "block"
-                              : "hidden lg:block"
-                          }`}
-                        >
-                          <div className="flex justify-between items-center mb-6">
-                            <h2 className="text-lg font-medium">Memberships</h2>
-                            <div className="flex gap-4">
-                              <button
-                                onClick={() =>
-                                  setShowEditButtons(!showEditButtons)
-                                }
-                                className="text-gray-400 hover:text-gray-600"
-                              >
-                                <img src={edit} alt="" />
-                              </button>
-                              <button
-                                onClick={() => {
-                                  setEditingMembership(null); // Clear any existing editing membership
-                                  setIsAddMembershipFormOpen(true);
-                                }}
-                                className="flex items-center space-x-1 bg-maincl text-white px-1 py-1 rounded-full hover:bg-fillc text-sm"
-                              >
-                                <FaPlus className="w-3 h-3" />
-                              </button>
-                            </div>
-                          </div>
-
-                          {/* Membership List */}
-                          {userDetails?.memberships.length === 0 ? (
-                            <div className="text-center py-8">
-                              <p className="text-gray-600 text-sm">
-                                Adding your memberships will showcase your
-                                professional affiliations and involvement,
-                                helping to strengthen your profile and
-                                credibility!
-                              </p>
-                            </div>
-                          ) : (
-                            <div className="relative group">
-                              {/* Scroll buttons - Only show on desktop */}
-                              {!isMobile &&
-                                userDetails?.memberships.length > 4 && (
-                                  <>
-                                    <button
-                                      className="absolute left-0 top-1/2 z-10 -translate-y-1/2 bg-gray-200 p-2 rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
-                                      onClick={() => {
-                                        const container =
-                                          document.getElementById(
-                                            "memberships-scroll"
-                                          );
-                                        if (container) {
-                                          container.scrollLeft -= 200;
-                                        }
-                                      }}
-                                    >
-                                      <img
-                                        src={arrowright}
-                                        alt="Previous"
-                                        className="w-4 h-4 transform rotate-180"
-                                      />
-                                    </button>
-
-                                    <button
-                                      className="absolute right-0 top-1/2 z-10 -translate-y-1/2 bg-gray-200 p-2 rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
-                                      onClick={() => {
-                                        const container =
-                                          document.getElementById(
-                                            "memberships-scroll"
-                                          );
-                                        if (container) {
-                                          container.scrollLeft += 200;
-                                        }
-                                      }}
-                                    >
-                                      <img
-                                        src={arrowright}
-                                        alt="Next"
-                                        className="w-4 h-4"
-                                      />
-                                    </button>
-                                  </>
-                                )}
-
-                              {/* Content container with different layouts for mobile and desktop */}
-                              <div
-                                id="memberships-scroll"
-                                className={`${
-                                  isMobile
-                                    ? "flex flex-col space-y-4"
-                                    : "overflow-x-hidden no-scrollbar scrollbar-hide scroll-smooth"
-                                }`}
-                              >
-                                <div
-                                  className={`${
-                                    isMobile ? "space-y-4" : "flex gap-6"
-                                  }`}
-                                >
-                                  {userDetails?.memberships.map(
-                                    (membership: any) => (
-                                      <div
-                                        key={membership.id}
-                                        className={`flex items-center  justify-between pb-4 border-b   ${
-                                          !isMobile && " min-w-[200px] "
-                                        }`}
-                                      >
-                                        <div className="flex items-center gap-3">
-                                          <img
-                                            src={membershipIcon}
-                                            alt={membership.name}
-                                            className="w-10 h-10 rounded-full"
-                                          />
-                                          <div>
-                                            <p className="font-medium text-sm">
-                                              {membership.societyname}
-                                            </p>
-                                            <p className=" text-xs text-gray-500">
-                                              {membership.relatedDepartment}
-                                            </p>
-                                            <p className="text-xs text-gray-500">
-                                              {membership.position}
-                                            </p>
-                                          </div>
-                                        </div>
-                                        {showEditButtons && (
-                                          <button
-                                            onClick={() => {
-                                              setEditingMembership(membership);
-                                              setIsAddMembershipFormOpen(true);
-                                            }}
-                                            className="text-gray-400 hover:text-gray-600"
-                                          >
-                                            <img
-                                              src={edit}
-                                              alt="Edit"
-                                              className="w-4 h-4"
-                                            />
-                                          </button>
-                                        )}
-                                      </div>
-                                    )
-                                  )}
+                            {/* Awards List */}
+                            <div>
+                              {userDetails?.awards.length === 0 ? (
+                                <div className="text-center py-8">
+                                  <p className="text-gray-600 text-sm">
+                                    Adding your awards and achievements highlights
+                                    your accomplishments and sets you apart,
+                                    making your profile more impressive and
+                                    memorable.
+                                  </p>
                                 </div>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                        {/* Membership Form Modal */}
-                        {isAddMembershipFormOpen && (
-                          <MembershipForm
-                            isOpen={isAddMembershipFormOpen}
-                            onClose={() => {
-                              setIsAddMembershipFormOpen(false);
-                              setEditingMembership(null);
-                            }}
-                            onSubmit={(data: MembershipFormData) => {
-                              if (editingMembership) {
-                                // Update existing membership
-                                const updatedMemberships = memberships.map(
-                                  (membership) =>
-                                    membership.id === editingMembership.id
-                                      ? {
-                                          ...membership,
-                                          name: data.name,
-                                          category: data.category,
-                                          position: data.position,
-                                          membershipId: data.membershipId,
-                                          // Keep the existing image if no new file is provided
-                                        }
-                                      : membership
-                                );
-
-                                setMemberships(updatedMemberships);
-                                handleaddMemberships(data, editingMembership);
-                              } else {
-                                // Add new membership
-                                const newMembership: Membership = {
-                                  id: Date.now(),
-                                  name: data.name,
-                                  category: data.category,
-                                  position: data.position,
-                                  membershipId: data.membershipId,
-                                };
-                                setMemberships([...memberships, newMembership]);
-                                handleaddMemberships(data, editingMembership);
-                              }
-                              setIsAddMembershipFormOpen(false);
-                              setEditingMembership(null);
-                            }}
-                            initialData={
-                              editingMembership
-                                ? {
-                                    name: editingMembership.name || "",
-                                    category: editingMembership.category || "",
-                                    position: editingMembership.position || "",
-                                    membershipId:
-                                      editingMembership.membershipId || "",
-                                    notifyFollowers: false,
-                                  }
-                                : undefined
-                            }
-                            isEditing={!!editingMembership}
-                          />
-                        )}
-
-                        {/* Awards and Achievements */}
-                        <div
-                          className={`bg-white rounded-xl p-6 mt-3 ${
-                            activeTab === "about" || activeTab === "About"
-                              ? "block"
-                              : "hidden lg:block"
-                          }`}
-                        >
-                          <div className="flex justify-between items-center mb-4">
-                            <h2 className="text-lg font-medium">
-                              Awards and Achievements
-                            </h2>
-                            <div className="flex gap-4">
-                              <button
-                                onClick={() =>
-                                  setShowEditButtons(!showEditButtons)
-                                }
-                                className="text-gray-400 hover:text-gray-600"
-                              >
-                                <img src={edit} alt="" /> {/* Edit Icon */}
-                              </button>
-                              <button
-                                onClick={() => {
-                                  setEditingAward(null); // Clear any existing editing award
-                                  setIsAwardFormOpen(true);
-                                }}
-                                className="flex items-center space-x-1 bg-maincl text-white px-1 py-1 rounded-full hover:bg-fillc text-sm"
-                              >
-                                <FaPlus className="w-3 h-3" />
-                              </button>
-                            </div>
-                          </div>
-
-                          {/* Awards List */}
-                          <div>
-                            {userDetails?.awards.length === 0 ? (
-                              <div className="text-center py-8">
-                                <p className="text-gray-600 text-sm">
-                                  Adding your awards and achievements highlights
-                                  your accomplishments and sets you apart,
-                                  making your profile more impressive and
-                                  memorable.
-                                </p>
-                              </div>
-                            ) : (
-                              <>
-                                {userDetails?.awards
-                                  .slice(0, expanded ? awards.length : 2)
-                                  .map((award: any) => (
-                                    <div
-                                      key={award.id}
-                                      className="border-b pb-4 mb-4 last:border-none"
-                                    >
-                                      <div className="flex justify-between">
-                                        <div>
-                                          <h3 className="text-base font-semibold ">
-                                            {award.awardName}
-                                          </h3>
-                                          <p className="text-gray-600 font-light text-sm">
-                                            {award.awardedBy} ({award.awardedOn}
-                                            )
-                                          </p>
-                                          <p className="text-gray-700 text-normal text-sm">
-                                            {award.descreption}
-                                          </p>
-                                          {award.awardMedia && (
-                                            <a
-                                              href={award.awardMedia}
-                                              className="mt-2 inline-block text-maincl border border-gray-200 rounded-3xl px-3 py-1 text-xs"
+                              ) : (
+                                <>
+                                  {userDetails?.awards
+                                    .slice(0, expanded ? awards.length : 2)
+                                    .map((award: any) => (
+                                      <div
+                                        key={award.id}
+                                        className="border-b pb-4 mb-4 last:border-none"
+                                      >
+                                        <div className="flex justify-between">
+                                          <div>
+                                            <h3 className="text-base font-semibold ">
+                                              {award.awardName}
+                                            </h3>
+                                            <p className="text-gray-600 font-light text-sm">
+                                              {award.awardedBy} ({award.awardedOn}
+                                              )
+                                            </p>
+                                            <p className="text-gray-700 text-normal text-sm">
+                                              {award.descreption}
+                                            </p>
+                                            {award.awardMedia && (
+                                              <a
+                                                href={award.awardMedia}
+                                                className="mt-2 inline-block text-maincl border border-gray-200 rounded-3xl px-3 py-1 text-xs"
+                                              >
+                                                Show Credential
+                                              </a>
+                                            )}
+                                          </div>
+                                          {showEditButtons && (
+                                            <button
+                                              onClick={() => {
+                                                // Set the award data to edit
+                                                setEditingAward({
+                                                  id: award.id,
+                                                  title: award.awardName,
+                                                  organization: award.awardedBy,
+                                                  year: award.awardedOn,
+                                                  description: award.descreption,
+                                                  credentialLink:
+                                                    award.awardMedia || "",
+                                                });
+                                                setIsAwardFormOpen(true);
+                                              }}
+                                              className="text-gray-400 hover:text-gray-600"
                                             >
-                                              Show Credential
-                                            </a>
+                                              <img
+                                                src={edit}
+                                                alt="Edit"
+                                                className="w-4 h-4"
+                                              />
+                                            </button>
                                           )}
                                         </div>
-                                        {showEditButtons && (
-                                          <button
-                                            onClick={() => {
-                                              // Set the award data to edit
-                                              setEditingAward({
-                                                id: award.id,
-                                                title: award.awardName,
-                                                organization: award.awardedBy,
-                                                year: award.awardedOn,
-                                                description: award.descreption,
-                                                credentialLink:
-                                                  award.awardMedia || "",
-                                              });
-                                              setIsAwardFormOpen(true);
-                                            }}
-                                            className="text-gray-400 hover:text-gray-600"
-                                          >
-                                            <img
-                                              src={edit}
-                                              alt="Edit"
-                                              className="w-4 h-4"
-                                            />
-                                          </button>
-                                        )}
                                       </div>
-                                    </div>
-                                  ))}
+                                    ))}
 
-                                {/* Expand Button - Only show if there are more than 2 awards */}
-                                {userDetails?.awards.length > 2 && (
-                                  <button
-                                    onClick={() => setExpanded(!expanded)}
-                                    className="w-full text-blue-600 text-sm font-medium flex items-center mt-2"
-                                  >
-                                    {expanded
-                                      ? "Show Less"
-                                      : "See all Awards and Achievements"}{" "}
-                                    →
-                                  </button>
-                                )}
-                              </>
-                            )}
+                                  {/* Expand Button - Only show if there are more than 2 awards */}
+                                  {userDetails?.awards.length > 2 && (
+                                    <button
+                                      onClick={() => setExpanded(!expanded)}
+                                      className="w-full text-blue-600 text-sm font-medium flex items-center mt-2"
+                                    >
+                                      {expanded
+                                        ? "Show Less"
+                                        : "See all Awards and Achievements"}{" "}
+                                      →
+                                    </button>
+                                  )}
+                                </>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                        {/* Award Form Modal */}
-                        <AwardForm
-                          isOpen={isAwardFormOpen}
-                          onClose={() => {
-                            setIsAwardFormOpen(false);
-                            setEditingAward(null);
-                          }}
-                          onSubmit={(data: AwardFormData) => {
-                            if (editingAward) {
-                              // Update existing award
-                              const updatedAwards = awards.map((award) =>
-                                award.id === editingAward.id
-                                  ? { ...award, ...data }
-                                  : award
-                              );
-                              setAwards(updatedAwards);
-                              handleaddaward(data, editingAward);
-                            } else {
-                              // Add new award
-                              const newAward = {
-                                id: Date.now(),
-                                ...data,
-                              };
-                              setAwards([...awards, newAward]);
-                              handleaddaward(data, editingAward);
-                            }
-                            setIsAwardFormOpen(false);
-                            setEditingAward(null);
-                          }}
-                          initialData={
-                            editingAward
-                              ? {
+                          {/* Award Form Modal */}
+                          <AwardForm
+                            isOpen={isAwardFormOpen}
+                            onClose={() => {
+                              setIsAwardFormOpen(false);
+                              setEditingAward(null);
+                            }}
+                            onSubmit={(data: AwardFormData) => {
+                              if (editingAward) {
+                                // Update existing award
+                                const updatedAwards = awards.map((award) =>
+                                  award.id === editingAward.id
+                                    ? { ...award, ...data }
+                                    : award
+                                );
+                                setAwards(updatedAwards);
+                                handleaddaward(data, editingAward);
+                              } else {
+                                // Add new award
+                                const newAward = {
+                                  id: Date.now(),
+                                  ...data,
+                                };
+                                setAwards([...awards, newAward]);
+                                handleaddaward(data, editingAward);
+                              }
+                              setIsAwardFormOpen(false);
+                              setEditingAward(null);
+                            }}
+                            initialData={
+                              editingAward
+                                ? {
                                   title: editingAward.title,
                                   organization: editingAward.organization,
                                   year: editingAward.year,
@@ -2585,12 +2557,12 @@ const Profile: React.FC = () => {
                                   credentialLink:
                                     editingAward.credentialLink || "",
                                 }
-                              : undefined
-                          } // Transform Award to AwardFormData
-                          isEditing={!!editingAward}
-                        />
-                      </div>
-                    )}
+                                : undefined
+                            } // Transform Award to AwardFormData
+                            isEditing={!!editingAward}
+                          />
+                        </div>
+                      )}
                     {activeDesktopTab === "activity" && (
                       <div className="space-y-3">
                         {/* Posts Section */}
@@ -2612,9 +2584,8 @@ const Profile: React.FC = () => {
                                 <img
                                   src={arrowright}
                                   alt=""
-                                  className={`transform ${
-                                    showAllPosts ? "rotate-180" : ""
-                                  } w-4 h-4`}
+                                  className={`transform ${showAllPosts ? "rotate-180" : ""
+                                    } w-4 h-4`}
                                 />
                               </button>
                             )}
@@ -2633,9 +2604,8 @@ const Profile: React.FC = () => {
                           ) : (
                             <div className="Z">
                               <button
-                                className={`absolute left-0 top-1/2 z-10 -translate-y-1/2 bg-gray-200 p-2 rounded-full shadow-md ${
-                                  showAllPosts ? "opacity-100" : "opacity-0"
-                                } group-hover: transition-opacity`}
+                                className={`absolute left-0 top-1/2 z-10 -translate-y-1/2 bg-gray-200 p-2 rounded-full shadow-md ${showAllPosts ? "opacity-100" : "opacity-0"
+                                  } group-hover: transition-opacity`}
                                 onClick={() => {
                                   const container = document.getElementById(
                                     "posts-scroll-container1"
@@ -2654,9 +2624,8 @@ const Profile: React.FC = () => {
                               </button>
 
                               <button
-                                className={`absolute right-0 top-1/2 z-10 -translate-y-1/2 bg-gray-200 p-2 rounded-full shadow-md ${
-                                  showAllPosts ? "opacity-100" : "opacity-0"
-                                } group-hover: transition-opacity`}
+                                className={`absolute right-0 top-1/2 z-10 -translate-y-1/2 bg-gray-200 p-2 rounded-full shadow-md ${showAllPosts ? "opacity-100" : "opacity-0"
+                                  } group-hover: transition-opacity`}
                                 onClick={() => {
                                   const container = document.getElementById(
                                     "posts-scroll-container1"
@@ -2686,10 +2655,11 @@ const Profile: React.FC = () => {
                                       className="w-[450px] flex-none"
                                     >
                                       <PostCard
-                                        userTitle={post.title}
+                                        userTitle={`${userDetails?.department} | ${userDetails?.specialisation_field_of_study}`}
                                         userImage={userDetails?.profile_picture}
                                         userName={userDetails.name}
                                         timeAgo={post.time}
+                                        postTitle={post.title}
                                         content={post.description}
                                         likes={post._count.likes}
                                         reposts={0}
@@ -2728,9 +2698,8 @@ const Profile: React.FC = () => {
                                 <img
                                   src={arrowright}
                                   alt=""
-                                  className={`transform ${
-                                    showAllQuestions ? "rotate-180" : ""
-                                  } w-4 h-4`}
+                                  className={`transform ${showAllQuestions ? "rotate-180" : ""
+                                    } w-4 h-4`}
                                 />
                               </button>
                             )}
@@ -2750,9 +2719,8 @@ const Profile: React.FC = () => {
                             <div className="relative">
                               {/* Arrow buttons - Show on hover */}
                               <button
-                                className={`absolute left-0 top-1/2 z-10 -translate-y-1/2 bg-gray-200 p-2 rounded-full shadow-md ${
-                                  showAllQuestions ? "opacity-100" : "opacity-0"
-                                }  transition-opacity`}
+                                className={`absolute left-0 top-1/2 z-10 -translate-y-1/2 bg-gray-200 p-2 rounded-full shadow-md ${showAllQuestions ? "opacity-100" : "opacity-0"
+                                  }  transition-opacity`}
                                 onClick={() => {
                                   const container = document.getElementById(
                                     "questions-scroll-container1"
@@ -2771,9 +2739,8 @@ const Profile: React.FC = () => {
                               </button>
 
                               <button
-                                className={`absolute right-0 top-1/2 z-10 -translate-y-1/2 bg-gray-200 p-2 rounded-full shadow-md ${
-                                  showAllQuestions ? "opacity-100" : "opacity-0"
-                                } transition-opacity`}
+                                className={`absolute right-0 top-1/2 z-10 -translate-y-1/2 bg-gray-200 p-2 rounded-full shadow-md ${showAllQuestions ? "opacity-100" : "opacity-0"
+                                  } transition-opacity`}
                                 onClick={() => {
                                   const container = document.getElementById(
                                     "questions-scroll-container1"
@@ -2874,9 +2841,8 @@ const Profile: React.FC = () => {
                             <img
                               src={arrowright}
                               alt=""
-                              className={`transform ${
-                                showAllJobs ? "rotate-180" : ""
-                              } w-4 h-4`}
+                              className={`transform ${showAllJobs ? "rotate-180" : ""
+                                } w-4 h-4`}
                             />
                           </button>
                         )}
@@ -2911,9 +2877,8 @@ const Profile: React.FC = () => {
                                 <img
                                   src={arrowright}
                                   alt=""
-                                  className={`transform ${
-                                    showAllPosts ? "rotate-180" : ""
-                                  } w-4 h-4`}
+                                  className={`transform ${showAllPosts ? "rotate-180" : ""
+                                    } w-4 h-4`}
                                 />
                               </button>
                             )}
@@ -2929,9 +2894,8 @@ const Profile: React.FC = () => {
                           ) : (
                             <div className="Z">
                               <button
-                                className={`absolute left-0 top-1/2 z-10 -translate-y-1/2 bg-gray-200 p-2 rounded-full shadow-md ${
-                                  showAllPosts ? "opacity-100" : "opacity-0"
-                                } group-hover: transition-opacity`}
+                                className={`absolute left-0 top-1/2 z-10 -translate-y-1/2 bg-gray-200 p-2 rounded-full shadow-md ${showAllPosts ? "opacity-100" : "opacity-0"
+                                  } group-hover: transition-opacity`}
                                 onClick={() => {
                                   const container = document.getElementById(
                                     "posts-scroll-container1"
@@ -2950,9 +2914,8 @@ const Profile: React.FC = () => {
                               </button>
 
                               <button
-                                className={`absolute right-0 top-1/2 z-10 -translate-y-1/2 bg-gray-200 p-2 rounded-full shadow-md ${
-                                  showAllPosts ? "opacity-100" : "opacity-0"
-                                } group-hover: transition-opacity`}
+                                className={`absolute right-0 top-1/2 z-10 -translate-y-1/2 bg-gray-200 p-2 rounded-full shadow-md ${showAllPosts ? "opacity-100" : "opacity-0"
+                                  } group-hover: transition-opacity`}
                                 onClick={() => {
                                   const container = document.getElementById(
                                     "posts-scroll-container1"
@@ -2987,6 +2950,7 @@ const Profile: React.FC = () => {
                                         userName={userDetails.name}
                                         timeAgo={post.time}
                                         content={post.description}
+                                        postTitle={post.title}
                                         likes={post._count.likes}
                                         reposts={0}
                                         comments={post._count.comments}
@@ -3024,9 +2988,8 @@ const Profile: React.FC = () => {
                                 <img
                                   src={arrowright}
                                   alt=""
-                                  className={`transform ${
-                                    showAllQuestions ? "rotate-180" : ""
-                                  } w-4 h-4`}
+                                  className={`transform ${showAllQuestions ? "rotate-180" : ""
+                                    } w-4 h-4`}
                                 />
                               </button>
                             )}
@@ -3046,9 +3009,8 @@ const Profile: React.FC = () => {
                             <div className="relative">
                               {/* Arrow buttons - Show on hover */}
                               <button
-                                className={`absolute left-0 top-1/2 z-10 -translate-y-1/2 bg-gray-200 p-2 rounded-full shadow-md ${
-                                  showAllQuestions ? "opacity-100" : "opacity-0"
-                                }  transition-opacity`}
+                                className={`absolute left-0 top-1/2 z-10 -translate-y-1/2 bg-gray-200 p-2 rounded-full shadow-md ${showAllQuestions ? "opacity-100" : "opacity-0"
+                                  }  transition-opacity`}
                                 onClick={() => {
                                   const container = document.getElementById(
                                     "questions-scroll-container1"
@@ -3067,9 +3029,8 @@ const Profile: React.FC = () => {
                               </button>
 
                               <button
-                                className={`absolute right-0 top-1/2 z-10 -translate-y-1/2 bg-gray-200 p-2 rounded-full shadow-md ${
-                                  showAllQuestions ? "opacity-100" : "opacity-0"
-                                } transition-opacity`}
+                                className={`absolute right-0 top-1/2 z-10 -translate-y-1/2 bg-gray-200 p-2 rounded-full shadow-md ${showAllQuestions ? "opacity-100" : "opacity-0"
+                                  } transition-opacity`}
                                 onClick={() => {
                                   const container = document.getElementById(
                                     "questions-scroll-container1"
